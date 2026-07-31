@@ -24,6 +24,7 @@ body {
   color: var(--color-text);
   font-family: var(--font-sans);
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -92,6 +93,7 @@ body {
   display: flex;
   padding-top: var(--topbar-height);
   height: 100vh;
+  height: 100dvh;
 }
 
 /* ── Sidebar ── */

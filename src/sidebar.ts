@@ -53,9 +53,12 @@ export function initSidebar(): void {
       sidebar.classList.remove('open');
       document.getElementById('main-layout')?.classList.remove('sidebar-open');
     } else {
-      // On mobile: ensure collapsed desktop styles are cleared
+      // On mobile: clear desktop inline styles so CSS media query takes over
       sidebar.classList.remove('collapsed');
-      applyCollapsedLayout(false);
+      const topBar = document.getElementById('top-bar');
+      const content = document.getElementById('content');
+      if (topBar) topBar.style.left = '';
+      if (content) content.style.marginLeft = '';
     }
   });
 }

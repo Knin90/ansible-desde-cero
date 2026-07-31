@@ -1,29 +1,29 @@
 /**
  * diagram.ts
- * Lazy-loads Mermaid when #diagram enters the viewport (threshold 0.1).
- * Dynamic import keeps Mermaid out of the critical path.
- * The Ansible architecture DSL is defined inline here.
+ * Lazy-loads Mermaid via CDN when #ansible-diagram enters the viewport.
+ * Loading is deferred until scroll-into-view to reduce initial parse cost.
+ * Falls back gracefully (shows raw DSL) when the CDN is unreachable.
+ *
+ * Note: Mermaid is NOT bundled into the single-file output to stay under
+ * the 1 MB size budget. The CDN script is injected on demand.
  */
 
-const DIAGRAM_DSL = `flowchart TD
-  A["Nodo de control<br/>ansible / ansible-playbook"] -->|lee| B["📋 Inventario<br/>(hosts)"]
-  A -->|"SSH push (sin agente)"| C["Nodo gestionado 1"]
-  A -->|"SSH push (sin agente)"| D["Nodo gestionado 2"]
-  A -->|"SSH push (sin agente)"| E["Nodo gestionado 3"]
-  B --> A
-  A -->|módulos Python temporales| C
-  A -->|módulos Python temporales| D
-  A -->|módulos Python temporales| E
-  C -->|"resultado JSON"| A
-  D -->|"resultado JSON"| A
-  E -->|"resultado JSON"| A`;
+const MERMAID_CDN =
+  'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+
+declare global {
+  interface Window {
+    mermaid?: {
+      initialize: (config: Record<string, unknown>) => void;
+      run: (opts: { nodes: HTMLElement[] }) => Promise<void>;
+    };
+  }
+}
 
 export function initDiagram(): void {
-  const diagramEl = document.getElementById('diagram');
+  // Look for the element that holds the Mermaid DSL (section 2)
+  const diagramEl = document.getElementById('ansible-diagram');
   if (!diagramEl) return;
-
-  // Inject the DSL so Mermaid can pick it up via mermaid.run()
-  diagramEl.textContent = DIAGRAM_DSL;
 
   let initialized = false;
 
@@ -43,21 +43,41 @@ export function initDiagram(): void {
   observer.observe(diagramEl);
 }
 
-async function loadAndRenderMermaid(el: HTMLElement): Promise<void> {
-  try {
-    const mermaid = await import('mermaid');
+function loadAndRenderMermaid(el: HTMLElement): void {
+  if (window.mermaid) {
+    renderMermaid(el);
+    return;
+  }
 
+  const script = document.createElement('script');
+  script.src = MERMAID_CDN;
+  script.crossOrigin = 'anonymous';
+
+  script.onload = () => renderMermaid(el);
+  script.onerror = () => {
+    console.warn('[diagram] Mermaid CDN no disponible — mostrando DSL sin procesar.');
+    el.classList.add('mermaid-fallback');
+  };
+
+  document.head.appendChild(script);
+}
+
+function renderMermaid(el: HTMLElement): void {
+  if (!window.mermaid) return;
+
+  try {
     const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-    mermaid.default.initialize({
+    window.mermaid.initialize({
       startOnLoad: false,
       theme: isDark ? 'dark' : 'default',
       securityLevel: 'loose',
     });
 
-    await mermaid.default.run({ nodes: [el] });
+    window.mermaid.run({ nodes: [el] }).catch((err: unknown) => {
+      console.error('[diagram] Error al renderizar Mermaid:', err);
+    });
   } catch (err) {
-    console.error('[diagram] Error al renderizar Mermaid:', err);
-    el.textContent = 'Error al cargar el diagrama.';
+    console.error('[diagram] Error al inicializar Mermaid:', err);
   }
 }

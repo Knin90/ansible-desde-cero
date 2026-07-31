@@ -11,6 +11,7 @@ import { initTooltips } from './tooltip';
 import { onRouteChange } from './router';
 import { ModuleRenderer } from './components/ModuleRenderer';
 import { levelRegistry } from './levels/registry';
+import { Icons } from './utils/icons';
 
 const renderer = new ModuleRenderer();
 
@@ -22,7 +23,31 @@ function getBreadcrumb(level: number, module: number): string {
   return `${lvl.title} / ${mod.title}`;
 }
 
+function initTheme(): void {
+  const html = document.documentElement;
+  const btn = document.getElementById('theme-toggle');
+  const icon = btn?.querySelector('.material-symbols-outlined');
+  const saved = localStorage.getItem('theme');
+
+  const apply = (theme: 'dark' | 'light') => {
+    html.classList.toggle('light', theme === 'light');
+    if (icon) icon.textContent = theme === 'light' ? 'dark_mode' : 'light_mode';
+    localStorage.setItem('theme', theme);
+  };
+
+  apply((saved === 'light' ? 'light' : 'dark') as 'dark' | 'light');
+  btn?.addEventListener('click', () => {
+    apply(html.classList.contains('light') ? 'dark' : 'light');
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+
+  // Inject reicon icons into static HTML elements
+  const toggleBtn = document.getElementById('sidebar-toggle');
+  if (toggleBtn) toggleBtn.innerHTML = Icons.menu;
+
   initSidebar();
   initTooltips();
 

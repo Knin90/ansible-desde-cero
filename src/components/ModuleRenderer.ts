@@ -1,6 +1,9 @@
 import type { ModuleContent } from '../levels/types';
 import { levelRegistry } from '../levels/registry';
 import { getModuleContent } from './contentRouter';
+import { sanitizeBadge } from '../utils/sanitizeBadge';
+import { getPrevNext, navigate } from '../router';
+import { Icons } from '../utils/icons';
 import { ArquitecturaDiagram } from '../diagrams/nivel1/arquitectura-diagram';
 import { FlujoInternoDiagram } from '../diagrams/nivel2/flujo-interno-diagram';
 import { InventarioDiagram } from '../diagrams/nivel3/inventario-diagram';
@@ -45,6 +48,69 @@ export class ModuleRenderer {
 
   constructor() {
     this.contentEl = document.getElementById('module-content')!;
+    // TASK 03: Single delegated click listener bound once in constructor
+    this.contentEl.addEventListener('click', this.handleContentClick.bind(this));
+  }
+
+  // TASK 03 + TASK 06: Delegated click handler
+  private handleContentClick(e: Event): void {
+    const target = e.target as HTMLElement;
+
+    // Copy button
+    const copyBtn = target.closest('.copy-btn') as HTMLElement | null;
+    if (copyBtn) {
+      const wrapper = copyBtn.closest('.code-block-wrapper');
+      const codeEl = wrapper?.querySelector('code');
+      const text = codeEl?.textContent ?? '';
+      this.handleCopy(copyBtn, text);
+      return;
+    }
+
+    // Prev/Next navigation
+    const navBtn = target.closest('[data-href]') as HTMLElement | null;
+    if (navBtn) {
+      const href = navBtn.dataset['href'];
+      if (href) {
+        window.location.hash = href.replace('#', '');
+      }
+    }
+  }
+
+  private handleCopy(btn: HTMLElement, text: string): void {
+    const copyText = async () => {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Fallback: textarea + execCommand
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+    };
+
+    copyText()
+      .then(() => {
+        btn.innerHTML = `<span class="material-symbols-outlined">done</span> COPIADO`;
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = `<span class="material-symbols-outlined">content_copy</span> COPIAR CÓDIGO`;
+          btn.classList.remove('copied');
+        }, 2000);
+      })
+      .catch(() => {
+        btn.innerHTML = `<span class="material-symbols-outlined">error</span> ERROR`;
+        btn.classList.add('copy-error');
+        setTimeout(() => {
+          btn.innerHTML = `<span class="material-symbols-outlined">content_copy</span> COPIAR CÓDIGO`;
+          btn.classList.remove('copy-error');
+        }, 2000);
+      });
   }
 
   async render(level: number, module: number): Promise<void> {
@@ -75,14 +141,42 @@ export class ModuleRenderer {
       return;
     }
 
-    this.renderModule(lvlMeta.badge, lvlMeta.title, lvlMeta.subtitle, lvlMeta.duration, content);
+    this.renderModule(level, module, lvlMeta.badge, lvlMeta.title, lvlMeta.subtitle, lvlMeta.duration, content);
     this.renderDiagram(level, module);
-    this.contentEl.scrollTop = 0;
+    this.injectCopyButtons();
+    document.getElementById('content')?.scrollTo({ top: 0, behavior: 'instant' });
     highlightAll();
     this.initScrollReveal();
   }
 
+  // Walk .code-block-titlebar elements and inject decorative dots + copy buttons
+  private injectCopyButtons(): void {
+    this.contentEl.querySelectorAll('.code-block-titlebar').forEach(titlebar => {
+      // Inject macOS-style decorative dots if not already present
+      if (!titlebar.querySelector('.code-block-dots')) {
+        const dots = document.createElement('span');
+        dots.className = 'code-block-dots';
+        dots.innerHTML = `
+          <span class="code-block-dot code-block-dot--close"></span>
+          <span class="code-block-dot code-block-dot--min"></span>
+          <span class="code-block-dot code-block-dot--max"></span>
+        `;
+        titlebar.insertBefore(dots, titlebar.firstChild);
+      }
+
+      // Avoid double-injection of copy button
+      if (titlebar.querySelector('.copy-btn')) return;
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.setAttribute('aria-label', 'Copiar código');
+      btn.innerHTML = `<span class="material-symbols-outlined">content_copy</span> COPIAR CÓDIGO`;
+      titlebar.appendChild(btn);
+    });
+  }
+
   private renderModule(
+    level: number,
+    module: number,
     badge: string,
     levelTitle: string,
     levelSubtitle: string,
@@ -92,6 +186,9 @@ export class ModuleRenderer {
     const progressDots = content.steps.map((_, i) =>
       `<span class="progress-dot" data-step="${i}"></span>`
     ).join('');
+
+    const totalSteps = content.steps.length;
+    const progressPct = totalSteps > 0 ? 100 : 100;
 
     const stepsHtml = content.steps.map((step, i) => `
       <div class="methodology-step">
@@ -103,20 +200,67 @@ export class ModuleRenderer {
       </div>
     `).join('');
 
+    // TASK 02+06: Get prev/next for this module
+    const { prev, next } = getPrevNext(level, module);
+
+    // Get titles for prev/next buttons
+    const prevTitle = prev?.title ?? '';
+    const nextTitle = next?.title ?? '';
+
+    const prevBtnAttrs = prev && prev.available
+      ? `data-href="#nivel-${prev.nivel}/modulo-${prev.modulo}"`
+      : 'disabled';
+    const nextBtnAttrs = next && next.available
+      ? `data-href="#nivel-${next.nivel}/modulo-${next.modulo}"`
+      : 'disabled';
+
+    // Breadcrumb — "Cursos > Nivel N > Module Title"
+    const breadcrumbHtml = `
+      <nav aria-label="breadcrumb" class="breadcrumb">
+        <a href="#nivel-0/modulo-1">Cursos</a>
+        <span class="breadcrumb-sep"><span class="material-symbols-outlined" style="font-size:0.75rem">chevron_right</span></span>
+        <a href="#nivel-${level}/modulo-1">${escapeHtml(levelTitle)} — ${escapeHtml(levelSubtitle)}</a>
+        <span class="breadcrumb-sep"><span class="material-symbols-outlined" style="font-size:0.75rem">chevron_right</span></span>
+        <span class="breadcrumb-current" aria-current="page">${escapeHtml(content.title)}</span>
+      </nav>
+    `;
+
     this.contentEl.innerHTML = `
-      <div class="module-header">
-        <div class="module-header-meta">
-          <span class="module-level-badge badge-${badge.toLowerCase()}">${escapeHtml(badge)}</span>
-          <span style="font-size:0.85rem;color:var(--color-text-muted)">${escapeHtml(levelTitle)} — ${escapeHtml(levelSubtitle)}</span>
-          ${duration ? `<span class="module-duration">⏱ ${escapeHtml(duration)}</span>` : ''}
-          ${content.duration ? `<span class="module-duration">⏱ ${escapeHtml(content.duration)}</span>` : ''}
+      ${breadcrumbHtml}
+      <div class="module-hero">
+        <div class="module-hero-bg-glow"></div>
+        <div class="module-tags">
+          <span class="module-requisite-tag">
+            <span class="material-symbols-outlined">label</span>
+            ${escapeHtml(badge)}
+          </span>
+          <span class="module-level-label">${escapeHtml(levelTitle)} — ${escapeHtml(levelSubtitle)}</span>
         </div>
         <h2 class="module-title">${escapeHtml(content.title)}</h2>
         <p class="module-objective">${escapeHtml(content.objective)}</p>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" style="width: ${progressPct}%"></div>
+        </div>
         <div class="module-progress">${progressDots}</div>
       </div>
       <div id="diagram-slot"></div>
       <div class="module-steps">${stepsHtml}</div>
+      <nav class="module-nav">
+        <button class="nav-btn prev-btn" ${prevBtnAttrs}>
+          <span class="nav-btn-icon"><span class="material-symbols-outlined">arrow_back</span></span>
+          <span class="nav-btn-info">
+            <span class="nav-btn-label">ANTERIOR</span>
+            <span class="nav-btn-title">${escapeHtml(prevTitle)}</span>
+          </span>
+        </button>
+        <button class="nav-btn next-btn" ${nextBtnAttrs}>
+          <span class="nav-btn-info" style="text-align:right">
+            <span class="nav-btn-label">SIGUIENTE</span>
+            <span class="nav-btn-title">${escapeHtml(nextTitle)}</span>
+          </span>
+          <span class="nav-btn-icon"><span class="material-symbols-outlined">arrow_forward</span></span>
+        </button>
+      </nav>
     `;
   }
 

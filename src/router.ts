@@ -1,6 +1,16 @@
+import { levelRegistry } from './levels/registry';
+import { getModuleContent } from './components/contentRouter';
+
 export interface Route {
   level: number;
   module: number;
+}
+
+export interface RouteRef {
+  nivel: number;
+  modulo: number;
+  title: string;
+  available: boolean;
 }
 
 export function getCurrentRoute(): Route {
@@ -21,4 +31,40 @@ export function onRouteChange(callback: (route: Route) => void): void {
   if (window.location.hash) {
     callback(getCurrentRoute());
   }
+}
+
+export function getPrevNext(
+  nivel: number,
+  modulo: number
+): { prev: RouteRef | null; next: RouteRef | null } {
+  // Build a flat ordered list of all [nivel, modulo] pairs from the registry
+  const flat: Array<{ nivel: number; modulo: number; title: string }> = [];
+  for (const level of levelRegistry) {
+    for (const mod of level.modules) {
+      flat.push({ nivel: level.id, modulo: mod.id, title: mod.title });
+    }
+  }
+
+  const currentIndex = flat.findIndex(
+    (entry) => entry.nivel === nivel && entry.modulo === modulo
+  );
+
+  if (currentIndex === -1) {
+    return { prev: null, next: null };
+  }
+
+  function toRouteRef(entry: { nivel: number; modulo: number; title: string }): RouteRef {
+    const content = getModuleContent(entry.nivel, entry.modulo);
+    return {
+      nivel: entry.nivel,
+      modulo: entry.modulo,
+      title: entry.title,
+      available: content !== undefined,
+    };
+  }
+
+  const prev = currentIndex > 0 ? toRouteRef(flat[currentIndex - 1]) : null;
+  const next = currentIndex < flat.length - 1 ? toRouteRef(flat[currentIndex + 1]) : null;
+
+  return { prev, next };
 }

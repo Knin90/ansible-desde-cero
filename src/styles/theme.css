@@ -1,40 +1,133 @@
 :root {
-  --color-bg: #0f1117;
-  --color-surface: #1a1d27;
-  --color-surface-2: #22263a;
-  --color-border: #2d3155;
-  --color-text: #e2e8f0;
-  --color-text-muted: #8892aa;
-  --color-primary: #f56a00;
-  --color-primary-dim: #c45000;
-  --color-accent: #60a5fa;
-  --color-success: #34d399;
+  /* Backgrounds */
+  --color-bg: #0e1511;
+  --color-surface: #0e1511;
+  --color-surface-low: #161d19;
+  --color-surface-container: #1a211d;
+  --color-surface-high: #242c27;
+  --color-surface-highest: #2f3632;
+  --color-surface-lowest: #09100c;
+  --color-surface-bright: #343b36;
+
+  /* Primary (teal-green) */
+  --color-primary: #4edea3;
+  --color-primary-dim: #006c49;
+  --color-primary-container: #10b981;
+  --color-on-primary: #003824;
+  --color-on-primary-container: #00422b;
+  --color-primary-fixed: #6ffbbe;
+  --color-primary-fixed-dim: #4edea3;
+
+  /* Secondary (cyan) */
+  --color-secondary: #4cd7f6;
+  --color-secondary-container: #03b5d3;
+  --color-on-secondary: #003640;
+  --color-on-secondary-container: #00424e;
+
+  /* Tertiary (lavender) */
+  --color-tertiary: #d0bcff;
+  --color-tertiary-container: #b090ff;
+
+  /* Text */
+  --color-text: #dde4dd;
+  --color-text-muted: #bbcabf;
+
+  /* Borders */
+  --color-border: #3c4a42;
+  --color-outline: #86948a;
+
+  /* State */
+  --color-success: #4edea3;
   --color-warning: #fbbf24;
-  --color-danger: #f87171;
-  --color-code-bg: #13151f;
-  --font-sans: 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'Fira Code', 'Cascadia Code', monospace;
+  --color-danger: #ffb4ab;
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  /* Legacy aliases for compatibility */
+  --color-surface-2: var(--color-surface-high);
+  --color-accent: var(--color-primary);
+
+  /* Code */
+  --color-code-bg: #09100c;
+  --color-code-keyword: #4cd7f6;
+  --color-code-comment: #86948a;
+  --color-code-string: #4edea3;
+  --color-code-command: #b090ff;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Layout */
   --sidebar-width: 280px;
-  --topbar-height: 56px;
+  --sidebar-collapsed-width: 80px;
+  --topbar-height: 64px;
+
+  /* Radius */
   --radius: 8px;
   --radius-sm: 4px;
+  --radius-lg: 12px;
+
+  /* Transitions */
   --transition: 200ms ease;
+  --transition-sidebar: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --color-bg: #f5f7fa;
-    --color-surface: #ffffff;
-    --color-surface-2: #eef0f5;
-    --color-border: #d1d5db;
-    --color-text: #1a202c;
-    --color-text-muted: #4a5568;
-    --color-primary: #e05a00;
-    --color-primary-dim: #b84700;
-    --color-accent: #2563eb;
-    --color-success: #059669;
-    --color-warning: #d97706;
-    --color-danger: #dc2626;
-    --color-code-bg: #f0f2f7;
-  }
+html.light {
+  /* Backgrounds */
+  --color-bg: #f8f9ff;
+  --color-surface: #f8f9ff;
+  --color-surface-low: #eff4ff;
+  --color-surface-container: #e5eeff;
+  --color-surface-high: #dce9ff;
+  --color-surface-highest: #d3e4fe;
+  --color-surface-lowest: #ffffff;
+  --color-surface-bright: #f8f9ff;
+
+  /* Primary (dark green) */
+  --color-primary: #006948;
+  --color-primary-dim: #005137;
+  --color-primary-container: #00855d;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #f5fff7;
+  --color-primary-fixed: #85f8c4;
+  --color-primary-fixed-dim: #68dba9;
+
+  /* Secondary (muted blue-gray) */
+  --color-secondary: #565e74;
+  --color-secondary-container: #dae2fd;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #5c647a;
+
+  /* Tertiary (blue) */
+  --color-tertiary: #0058be;
+  --color-tertiary-container: #2170e4;
+
+  /* Text */
+  --color-text: #0b1c30;
+  --color-text-muted: #3d4a42;
+
+  /* Borders */
+  --color-border: #bccac0;
+  --color-outline: #6d7a72;
+
+  /* State */
+  --color-success: #006948;
+  --color-warning: #854d0e;
+  --color-danger: #ba1a1a;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* Legacy aliases */
+  --color-surface-2: var(--color-surface-high);
+  --color-accent: var(--color-primary);
+
+  /* Code */
+  --color-code-bg: #f8fafc;
+  --color-code-keyword: #0550ae;
+  --color-code-comment: #6e7781;
+  --color-code-string: #0a3069;
+  --color-code-command: #6f42c1;
 }

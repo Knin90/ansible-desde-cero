@@ -1,5 +1,7 @@
 import { levelRegistry } from './levels/registry';
 import { navigate } from './router';
+import { sanitizeBadge } from './utils/sanitizeBadge';
+import { Icons } from './utils/icons';
 
 export function initSidebar(): void {
   const navTree = document.getElementById('nav-tree')!;
@@ -7,12 +9,55 @@ export function initSidebar(): void {
   const sidebarToggle = document.getElementById('sidebar-toggle');
   const sidebar = document.getElementById('sidebar')!;
 
+  // Inject brand header above the search area
+  if (!sidebar.querySelector('.sidebar-brand')) {
+    const brand = document.createElement('div');
+    brand.className = 'sidebar-brand';
+    brand.innerHTML = `
+      <div class="sidebar-brand-icon">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">terminal</span>
+      </div>
+      <div class="sidebar-brand-text">
+        <h1 class="sidebar-brand-name">Ansible</h1>
+        <p class="sidebar-brand-subtitle">Curso Completo</p>
+      </div>
+    `;
+    sidebar.insertBefore(brand, sidebar.firstChild);
+  }
+
+  // Inject search icon
+  const searchWrapper = document.getElementById('sidebar-search');
+  if (searchWrapper && !searchWrapper.querySelector('.search-icon')) {
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'search-icon material-symbols-outlined';
+    iconSpan.textContent = 'search';
+    searchWrapper.insertBefore(iconSpan, searchInput);
+  }
+
+  // Swap sidebar-toggle to use Material Symbols menu icon
+  if (sidebarToggle && !sidebarToggle.querySelector('.material-symbols-outlined')) {
+    sidebarToggle.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+  }
+
   buildNavTree(navTree, sidebar);
   initSearch(searchInput, navTree);
   initToggle(sidebarToggle, sidebar);
+  initBackdrop(sidebar);
   updateActiveItem();
 
   window.addEventListener('hashchange', updateActiveItem);
+
+  // Reset sidebar state on resize to avoid stuck states
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      sidebar.classList.remove('open');
+      document.getElementById('main-layout')?.classList.remove('sidebar-open');
+    } else {
+      // On mobile: ensure collapsed desktop styles are cleared
+      sidebar.classList.remove('collapsed');
+      applyCollapsedLayout(false);
+    }
+  });
 }
 
 function buildNavTree(navTree: HTMLElement, sidebar: HTMLElement): void {
@@ -24,9 +69,9 @@ function buildNavTree(navTree: HTMLElement, sidebar: HTMLElement): void {
     const header = document.createElement('div');
     header.className = 'level-header';
     header.innerHTML = `
-      <span class="level-arrow">▶</span>
-      <span>${level.title} — <span style="color:var(--color-text-muted);font-weight:400">${level.subtitle}</span></span>
-      <span class="level-badge badge-${level.badge.toLowerCase()}">${level.badge}</span>
+      <span class="material-symbols-outlined level-arrow">chevron_right</span>
+      <span class="level-title-text">${level.title} — <span style="color:var(--color-text-muted);font-weight:400">${level.subtitle}</span></span>
+      <span class="level-badge badge-${sanitizeBadge(level.badge)}">${level.badge}</span>
     `;
 
     const moduleList = document.createElement('div');
@@ -84,14 +129,48 @@ function initSearch(input: HTMLInputElement, navTree: HTMLElement): void {
   });
 }
 
+function applyCollapsedLayout(collapsed: boolean): void {
+  const topBar = document.getElementById('top-bar');
+  const content = document.getElementById('content');
+  const w = collapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)';
+  if (topBar) topBar.style.left = w;
+  if (content) content.style.marginLeft = w;
+}
+
 function initToggle(toggle: HTMLElement | null, sidebar: HTMLElement): void {
   if (!toggle) return;
+
+  // Apply saved collapsed state on init (desktop only)
+  if (window.innerWidth > 768) {
+    const saved = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (saved) {
+      sidebar.classList.add('collapsed');
+      applyCollapsedLayout(true);
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  }
+
   toggle.addEventListener('click', () => {
+    const mainLayout = document.getElementById('main-layout');
     if (window.innerWidth <= 768) {
       sidebar.classList.toggle('open');
+      mainLayout?.classList.toggle('sidebar-open', sidebar.classList.contains('open'));
     } else {
-      sidebar.classList.toggle('collapsed');
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      applyCollapsedLayout(isCollapsed);
+      toggle.setAttribute('aria-expanded', String(!isCollapsed));
+      localStorage.setItem('sidebarCollapsed', String(isCollapsed));
     }
+  });
+}
+
+function initBackdrop(sidebar: HTMLElement): void {
+  const backdrop = document.getElementById('backdrop');
+  if (!backdrop) return;
+  backdrop.addEventListener('click', () => {
+    const mainLayout = document.getElementById('main-layout');
+    sidebar.classList.remove('open');
+    mainLayout?.classList.remove('sidebar-open');
   });
 }
 

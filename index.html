@@ -1,19 +1,26 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ansible — Curso Completo</title>
   <meta name="description" content="Curso completo de Ansible desde principiante hasta experto" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
 </head>
 <body>
   <div id="app">
     <header id="top-bar">
-      <button id="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
+      <button id="sidebar-toggle" aria-label="Toggle sidebar" data-icon="menu"></button>
       <h1>Ansible <span>Curso Completo</span></h1>
       <span id="breadcrumb"></span>
+      <button id="theme-toggle" aria-label="Toggle theme">
+        <span class="material-symbols-outlined">light_mode</span>
+      </button>
     </header>
     <div id="main-layout">
+      <div id="backdrop"></div>
       <nav id="sidebar">
         <div id="sidebar-search">
           <input type="text" placeholder="Buscar módulo..." id="search-input" />

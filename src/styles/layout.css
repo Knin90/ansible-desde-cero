@@ -189,5 +189,6 @@ body {
   #content {
     margin-left: 0;
     padding: 1.25rem 1rem;
+    padding-bottom: max(3rem, env(safe-area-inset-bottom, 3rem));
   }
 }

@@ -159,21 +159,35 @@ body {
 /* ── Mobile ── */
 @media (max-width: 768px) {
   #sidebar {
-    width: var(--sidebar-width);
+    width: min(var(--sidebar-width), 85vw);
     transform: translateX(-100%);
     transition: transform var(--transition-sidebar);
   }
 
   #sidebar.open {
     transform: translateX(0);
-    width: var(--sidebar-width);
   }
 
   #top-bar {
     left: 0;
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+
+  #top-bar h1 {
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  #breadcrumb {
+    display: none;
   }
 
   #content {
     margin-left: 0;
+    padding: 1.25rem 1rem;
   }
 }

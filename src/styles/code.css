@@ -196,6 +196,26 @@ pre[class*="language-"] {
   pointer-events: none;
 }
 
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  pre[class*="language-"] {
+    padding: 1rem;
+    font-size: 0.8rem;
+  }
+
+  .code-block-wrapper pre[class*="language-"] {
+    padding: 1rem;
+  }
+
+  .code-block-titlebar {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .code-block-dots {
+    display: none;
+  }
+}
+
 /* ── Inline code ── */
 code:not([class]) {
   font-family: var(--font-mono);

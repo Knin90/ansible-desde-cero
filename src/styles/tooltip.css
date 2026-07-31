@@ -1,0 +1,76 @@
+/* ================================================================
+   tooltip.css — Floating tooltip component
+   ================================================================ */
+
+/* Anchor spans that carry tooltip data */
+.tooltip-anchor,
+.anno[data-annotation],
+[data-tooltip] {
+  cursor: help;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--color-primary);
+  text-underline-offset: 3px;
+}
+
+/* Lines annotated with the annotation engine */
+.anno {
+  display: block;
+  border-radius: 2px;
+  transition: background-color var(--transition-fast);
+}
+
+.anno:hover,
+.anno:focus {
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  outline: none;
+}
+
+/* The shared floating popup */
+.tooltip-popup {
+  position: fixed;
+  z-index: 200;
+  max-width: 320px;
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-tooltip-bg);
+  color: var(--color-tooltip-text);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-sans);
+  line-height: var(--line-height-base);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-tooltip);
+  pointer-events: none;
+
+  /* Hidden by default */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition:
+    opacity var(--transition-fast),
+    visibility var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.tooltip-popup.tooltip-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Positional variants — JS sets top/left and adds the class */
+.tooltip-popup.tooltip-above {
+  transform: translateY(-4px);
+}
+
+.tooltip-popup.tooltip-above.tooltip-visible {
+  transform: translateY(0);
+}
+
+.tooltip-popup.tooltip-below {
+  transform: translateY(4px);
+}
+
+.tooltip-popup.tooltip-below.tooltip-visible {
+  transform: translateY(0);
+}

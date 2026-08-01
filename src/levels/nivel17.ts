@@ -1050,15 +1050,15 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "$STAGING_HOST" >> ~/.ssh/known_hosts
         env:
-          STAGING_SSH_KEY: ${{ '{{' }} secrets.STAGING_SSH_KEY ${{ '}}' }}
-          STAGING_HOST: ${{ '{{' }} secrets.STAGING_HOST ${{ '}}' }}
+          STAGING_SSH_KEY: ${'$'}{{ secrets.STAGING_SSH_KEY }}
+          STAGING_HOST: ${'$'}{{ secrets.STAGING_HOST }}
 
       - name: Configurar Ansible Vault password
         run: |
           echo "$ANSIBLE_VAULT_PASSWORD" > ~/.vault_pass
           chmod 600 ~/.vault_pass
         env:
-          ANSIBLE_VAULT_PASSWORD: ${{ '{{' }} secrets.ANSIBLE_VAULT_PASSWORD ${{ '}}' }}
+          ANSIBLE_VAULT_PASSWORD: ${'$'}{{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
       - name: Dry-run en staging
         run: |
@@ -1111,15 +1111,15 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "$PROD_BASTION_HOST" >> ~/.ssh/known_hosts
         env:
-          PROD_SSH_KEY: ${{ '{{' }} secrets.PROD_SSH_KEY ${{ '}}' }}
-          PROD_BASTION_HOST: ${{ '{{' }} secrets.PROD_BASTION_HOST ${{ '}}' }}
+          PROD_SSH_KEY: ${'$'}{{ secrets.PROD_SSH_KEY }}
+          PROD_BASTION_HOST: ${'$'}{{ secrets.PROD_BASTION_HOST }}
 
       - name: Configurar Ansible Vault password
         run: |
           echo "$ANSIBLE_VAULT_PASSWORD" > ~/.vault_pass
           chmod 600 ~/.vault_pass
         env:
-          ANSIBLE_VAULT_PASSWORD: ${{ '{{' }} secrets.ANSIBLE_VAULT_PASSWORD ${{ '}}' }}
+          ANSIBLE_VAULT_PASSWORD: ${'$'}{{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
       - name: Deploy a producción
         run: |
@@ -1217,9 +1217,9 @@ jobs:
           echo "$ANSIBLE_VAULT_PASSWORD" > ~/.vault_pass
           chmod 600 ~/.vault_pass
         env:
-          STAGING_SSH_KEY: ${{ '{{' }} secrets.STAGING_SSH_KEY ${{ '}}' }}
-          STAGING_HOST: ${{ '{{' }} secrets.STAGING_HOST ${{ '}}' }}
-          ANSIBLE_VAULT_PASSWORD: ${{ '{{' }} secrets.ANSIBLE_VAULT_PASSWORD ${{ '}}' }}
+          STAGING_SSH_KEY: ${'$'}{{ secrets.STAGING_SSH_KEY }}
+          STAGING_HOST: ${'$'}{{ secrets.STAGING_HOST }}
+          ANSIBLE_VAULT_PASSWORD: ${'$'}{{ secrets.ANSIBLE_VAULT_PASSWORD }}
       - run: |
           ansible-playbook site.yml \\
             -i inventory/staging \\
@@ -1250,9 +1250,9 @@ jobs:
           echo "$ANSIBLE_VAULT_PASSWORD" > ~/.vault_pass
           chmod 600 ~/.vault_pass
         env:
-          PROD_SSH_KEY: ${{ '{{' }} secrets.PROD_SSH_KEY ${{ '}}' }}
-          PROD_BASTION_HOST: ${{ '{{' }} secrets.PROD_BASTION_HOST ${{ '}}' }}
-          ANSIBLE_VAULT_PASSWORD: ${{ '{{' }} secrets.ANSIBLE_VAULT_PASSWORD ${{ '}}' }}
+          PROD_SSH_KEY: ${'$'}{{ secrets.PROD_SSH_KEY }}
+          PROD_BASTION_HOST: ${'$'}{{ secrets.PROD_BASTION_HOST }}
+          ANSIBLE_VAULT_PASSWORD: ${'$'}{{ secrets.ANSIBLE_VAULT_PASSWORD }}
       - run: |
           ansible-playbook site.yml \\
             -i inventory/production \\

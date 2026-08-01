@@ -932,9 +932,9 @@ WantedBy=multi-user.target</code></pre>
         color: "warning"
         msg: |
           🚀 *Deploy iniciado*
-          • Versión: `{{ app_version }}`
-          • Ambiente: `{{ inventory_hostname }}`
-          • Iniciado por: `{{ deployer }}`
+          • Versión: \`{{ app_version }}\`
+          • Ambiente: \`{{ inventory_hostname }}\`
+          • Iniciado por: \`{{ deployer }}\`
         attachments:
           - title: "Detalles"
             text: "El deploy está en curso. Próxima actualización en ~5 minutos."
@@ -960,8 +960,8 @@ WantedBy=multi-user.target</code></pre>
         color: "good"
         msg: |
           ✅ *Deploy completado exitosamente*
-          • Versión: `{{ app_version }}`
-          • Tiempo total: `{{ ansible_play_duration | default('N/A') }}`
+          • Versión: \`{{ app_version }}\`
+          • Tiempo total: \`{{ ansible_play_duration | default('N/A') }}\`
       delegate_to: localhost
       run_once: true
 
@@ -973,9 +973,9 @@ WantedBy=multi-user.target</code></pre>
         color: "danger"
         msg: |
           🔴 *Deploy FALLIDO*
-          • Versión: `{{ app_version }}`
-          • Tarea fallida: `{{ ansible_failed_task.name }}`
-          • Error: `{{ ansible_failed_result.msg }}`
+          • Versión: \`{{ app_version }}\`
+          • Tarea fallida: \`{{ ansible_failed_task.name }}\`
+          • Error: \`{{ ansible_failed_result.msg }}\`
       delegate_to: localhost
       run_once: true</code></pre>
           </div>
@@ -1026,11 +1026,11 @@ jobs:
       - name: Configurar clave SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/ansible
+          echo "${'$'}{{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/ansible
           chmod 600 ~/.ssh/ansible
 
       - name: Crear archivo de vault password
-        run: echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > /tmp/.vault_pass
+        run: echo "${'$'}{{ secrets.ANSIBLE_VAULT_PASSWORD }}" > /tmp/.vault_pass
 
       - name: Ejecutar playbook de deploy
         run: |
@@ -1038,7 +1038,7 @@ jobs:
             -i inventories/production/ \
             --private-key ~/.ssh/ansible \
             --vault-password-file /tmp/.vault_pass \
-            -e "app_version=${{ github.sha }}" \
+            -e "app_version=${'$'}{{ github.sha }}" \
             playbooks/deploy-app.yml
 
       - name: Limpiar secretos

@@ -15,7 +15,7 @@ export function initSidebar(): void {
     brand.className = 'sidebar-brand';
     brand.innerHTML = `
       <div class="sidebar-brand-icon">
-        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">terminal</span>
+        ${Icons.terminal}
       </div>
       <div class="sidebar-brand-text">
         <h1 class="sidebar-brand-name">Ansible</h1>
@@ -29,14 +29,14 @@ export function initSidebar(): void {
   const searchWrapper = document.getElementById('sidebar-search');
   if (searchWrapper && !searchWrapper.querySelector('.search-icon')) {
     const iconSpan = document.createElement('span');
-    iconSpan.className = 'search-icon material-symbols-outlined';
-    iconSpan.textContent = 'search';
+    iconSpan.className = 'search-icon';
+    iconSpan.innerHTML = Icons.search;
     searchWrapper.insertBefore(iconSpan, searchInput);
   }
 
-  // Swap sidebar-toggle to use Material Symbols menu icon
-  if (sidebarToggle && !sidebarToggle.querySelector('.material-symbols-outlined')) {
-    sidebarToggle.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+  // Swap sidebar-toggle to use SVG menu icon
+  if (sidebarToggle && !sidebarToggle.querySelector('svg')) {
+    sidebarToggle.innerHTML = Icons.menu;
   }
 
   buildNavTree(navTree, sidebar);
@@ -72,7 +72,7 @@ function buildNavTree(navTree: HTMLElement, sidebar: HTMLElement): void {
     const header = document.createElement('div');
     header.className = 'level-header';
     header.innerHTML = `
-      <span class="material-symbols-outlined level-arrow">chevron_right</span>
+      <span class="level-arrow">${Icons.chevronRight}</span>
       <span class="level-title-text">${level.title} — <span style="color:var(--color-text-muted);font-weight:400">${level.subtitle}</span></span>
       <span class="level-badge badge-${sanitizeBadge(level.badge)}">${level.badge}</span>
     `;

@@ -26,12 +26,11 @@ function getBreadcrumb(level: number, module: number): string {
 function initTheme(): void {
   const html = document.documentElement;
   const btn = document.getElementById('theme-toggle');
-  const icon = btn?.querySelector('.material-symbols-outlined');
   const saved = localStorage.getItem('theme');
 
   const apply = (theme: 'dark' | 'light') => {
     html.classList.toggle('light', theme === 'light');
-    if (icon) icon.textContent = theme === 'light' ? 'dark_mode' : 'light_mode';
+    if (btn) btn.innerHTML = theme === 'light' ? Icons.moon : Icons.sun;
     localStorage.setItem('theme', theme);
   };
 

@@ -14,6 +14,10 @@ export const nivel0Modules: ModuleContent[] = [
           <p>Ansible gestiona servidores. La inmensa mayoría de esos servidores corren Linux. Antes de automatizar, necesitás entender qué estás automatizando.</p>
           <p>Cuando Ansible ejecuta un playbook, básicamente envía comandos a un servidor Linux a través de SSH. Si no entendés cómo funciona Linux, no vas a poder escribir playbooks correctos ni diagnosticar errores.</p>
           <div class="highlight-box"><p><strong>Regla de oro:</strong> Ansible no es magia — es Linux automatizado. Todo lo que Ansible hace, lo podrías hacer a mano con SSH. La diferencia es que Ansible lo hace de manera repetible y declarativa.</p></div>
+          <div class="analogy-box">
+            <div class="analogy-box-header">💡 Analogía</div>
+            <p>Pensá en Linux como el idioma nativo de los servidores. Ansible es el traductor — pero el traductor necesita conocer el idioma antes de poder traducirlo.</p>
+          </div>
         `
       },
       {
@@ -228,13 +232,39 @@ uptime             # carga promedio</code></pre>
       {
         title: 'Práctica guiada',
         body: `
-          <p>Antes de avanzar, practicá estos comandos en tu máquina o una máquina virtual:</p>
-          <ol>
-            <li>Navegá el sistema de archivos: explorá <code>/etc</code>, <code>/var/log</code>, <code>/usr/bin</code></li>
-            <li>Creá un archivo, cambiale los permisos con chmod, y verificá con ls -la</li>
-            <li>Instalá nginx (si tenés sudo), verificá su estado con systemctl status</li>
-            <li>Generá un par de claves SSH</li>
-          </ol>
+          <div class="lab-box">
+            <div class="lab-box-header">🧪 Laboratorio</div>
+            <div class="lab-section">
+              <div class="lab-section-title">Objetivo</div>
+              <p style="font-size:0.9rem;color:var(--color-text-muted);line-height:1.65">Practicar los comandos Linux esenciales en una máquina virtual o tu propia máquina, simulando lo que Ansible hará de forma automática.</p>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Pasos</div>
+              <ol>
+                <li>Navegá el sistema de archivos: explorá <code>/etc</code>, <code>/var/log</code>, <code>/usr/bin</code></li>
+                <li>Creá un archivo, cambiale los permisos con <code>chmod</code>, y verificá con <code>ls -la</code></li>
+                <li>Instalá nginx (si tenés sudo) con <code>apt install nginx</code> o <code>dnf install nginx</code></li>
+                <li>Verificá el estado del servicio con <code>systemctl status nginx</code></li>
+                <li>Generá un par de claves SSH con <code>ssh-keygen -t ed25519</code></li>
+              </ol>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Verificación</div>
+              <ul>
+                <li>El archivo que creaste muestra los permisos correctos con <code>ls -la</code></li>
+                <li><code>systemctl status nginx</code> muestra <code>active (running)</code></li>
+                <li>Los archivos <code>~/.ssh/id_ed25519</code> y <code>~/.ssh/id_ed25519.pub</code> existen</li>
+              </ul>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Preguntas para reflexionar</div>
+              <ul>
+                <li>¿Qué diferencia hay entre <code>chmod 644</code> y <code>chmod 755</code>?</li>
+                <li>¿Por qué Ansible copia módulos a <code>/tmp</code> en lugar de <code>/home</code>?</li>
+                <li>¿Qué pasa si el usuario SSH de Ansible no tiene acceso a <code>sudo</code>?</li>
+              </ul>
+            </div>
+          </div>
         `
       },
       {
@@ -243,9 +273,44 @@ uptime             # carga promedio</code></pre>
           <div class="highlight-box">
             <p>Aprendiste los fundamentos de Linux que Ansible necesita: sistema de archivos, permisos, servicios y SSH. Con esto podés entender qué hace Ansible cuando ejecuta un playbook en un host remoto.</p>
           </div>
-          <div class="challenge-box">
-            <div class="challenge-title">🎯 Desafío del módulo</div>
-            <div class="challenge-body">Configurá una máquina virtual Linux con Ubuntu o Rocky Linux. Generá un par de claves SSH. Conectate por SSH sin contraseña. Instalá nginx manualmente. En el próximo módulo vas a automatizar exactamente esto con Ansible.</div>
+          <div class="lab-box">
+            <div class="lab-box-header">🧪 Laboratorio final</div>
+            <div class="lab-section">
+              <div class="lab-section-title">Objetivo</div>
+              <p style="font-size:0.9rem;color:var(--color-text-muted);line-height:1.65">Preparar un entorno Linux completo que luego usarás como managed node de Ansible.</p>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Pasos</div>
+              <ol>
+                <li>Configurá una máquina virtual Linux con Ubuntu 22.04 o Rocky Linux 9</li>
+                <li>Generá un par de claves SSH con <code>ssh-keygen -t ed25519</code></li>
+                <li>Copiá la clave pública al servidor con <code>ssh-copy-id</code></li>
+                <li>Conectate por SSH sin contraseña</li>
+                <li>Instalá nginx manualmente y verificá con <code>systemctl status nginx</code></li>
+              </ol>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Verificación</div>
+              <ul>
+                <li>Podés hacer <code>ssh usuario@servidor</code> sin que pida contraseña</li>
+                <li>nginx responde en <code>http://IP-del-servidor</code></li>
+              </ul>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Preguntas para reflexionar</div>
+              <ul>
+                <li>¿Qué comandos de este módulo vas a ver automatizados por Ansible en el Nivel 1?</li>
+                <li>¿Cuál es la diferencia entre el usuario del sistema y el usuario SSH de Ansible?</li>
+              </ul>
+            </div>
+          </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Redes para Ansible</div>
+              <div class="next-chapter-desc">Aprendés las bases de IP, DNS, SSH y diagnóstico de red que Ansible necesita para conectarse a los hosts remotos.</div>
+            </div>
           </div>
         `
       }
@@ -466,6 +531,10 @@ retries = 3                   # reintentar conexión 3 veces</code></pre>
           <div class="highlight-box">
             <p><strong>Regla absoluta de YAML:</strong> usa siempre <strong>2 espacios</strong> para indentar. Nunca tabs. Un tab en lugar de espacios rompe el parsing silenciosamente en algunos editores — es uno de los errores más comunes.</p>
           </div>
+          <div class="analogy-box">
+            <div class="analogy-box-header">💡 Analogía</div>
+            <p>Pensá en YAML como el formulario que llenás para instruir a Ansible. El sangrado (indentación) es como los campos del formulario — si los completás en el lugar equivocado, el formulario no tiene sentido.</p>
+          </div>
           <div class="tip-box">
             <span class="box-icon">💡</span>
             <div class="box-content">Configurá tu editor para que inserte 2 espacios cuando presionás Tab. En VSCode: <code>Editor: Tab Size = 2</code> + <code>Editor: Insert Spaces = true</code>.</div>
@@ -541,6 +610,10 @@ usuarios:
 
 # Lista vacía
 sin_elementos: []</code></pre>
+          </div>
+          <div class="analogy-box">
+            <div class="analogy-box-header">💡 Analogía</div>
+            <p>Una lista YAML es exactamente como una lista de compras. Cada ítem empieza con un guión, uno debajo del otro, en el mismo nivel de indentación.</p>
           </div>
           <div class="tip-box">
             <span class="box-icon">💡</span>
@@ -778,17 +851,44 @@ ansible-lint mi-playbook.yml</code></pre>
           <div class="highlight-box">
             <p>Dominás YAML: escalares, listas, diccionarios, multilínea y anchors. Con esto podés leer y escribir cualquier playbook, inventario o archivo de variables de Ansible.</p>
           </div>
-          <div class="challenge-box">
-            <div class="challenge-title">🎯 Desafío</div>
-            <div class="challenge-body">
-              Escribí un archivo YAML que defina:
+          <div class="lab-box">
+            <div class="lab-box-header">🧪 Laboratorio</div>
+            <div class="lab-section">
+              <div class="lab-section-title">Objetivo</div>
+              <p style="font-size:0.9rem;color:var(--color-text-muted);line-height:1.65">Escribir un archivo YAML completo que combine todos los tipos de datos vistos, y validarlo con yamllint.</p>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Pasos</div>
               <ol>
-                <li>Un diccionario con configuración de un servidor (nombre, IP, puerto, habilitado)</li>
-                <li>Una lista de paquetes a instalar</li>
-                <li>Un bloque multilínea con un script bash</li>
-                <li>Un anchor que reutilice configuración común entre dos servidores</li>
+                <li>Creá un archivo <code>practica.yml</code></li>
+                <li>Definí un diccionario con configuración de un servidor (nombre, IP, puerto, habilitado)</li>
+                <li>Agregá una lista de paquetes a instalar</li>
+                <li>Incluí un bloque multilínea con un script bash usando <code>|</code></li>
+                <li>Creá un anchor y reutilizalo en dos servidores distintos</li>
+                <li>Validá el archivo con <code>yamllint practica.yml</code></li>
               </ol>
-              Validalo con <code>yamllint</code>.
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Verificación</div>
+              <ul>
+                <li><code>yamllint practica.yml</code> no muestra errores</li>
+                <li>El archivo es legible para alguien que no lo escribió</li>
+              </ul>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Preguntas para reflexionar</div>
+              <ul>
+                <li>¿Cuándo preferirías usar <code>|</code> en lugar de <code>&gt;</code> para texto multilínea?</li>
+                <li>¿Por qué Ansible prefiere YAML sobre JSON para los playbooks?</li>
+              </ul>
+            </div>
+          </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Python para Ansible</div>
+              <div class="next-chapter-desc">Ansible está escrito en Python y los módulos se ejecutan como scripts Python en el host remoto. Entender lo básico hace que todo el resto encaje.</div>
             </div>
           </div>
         `

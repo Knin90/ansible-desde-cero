@@ -14,6 +14,11 @@ import {
   User,
   Bell,
   Settings,
+  Sun,
+  Moon,
+  Tag,
+  BrowserTerminal,
+  CloseCircle,
 } from 'reicon';
 
 const opts = { size: 16, color: 'currentColor', weight: 'Outline' } as const;
@@ -24,8 +29,10 @@ export const Icons = {
   arrowLeft: ArrowLeft.toSvg(opts),
   arrowRight: ArrowRight.toSvg(opts),
   chevronRight: ChevronRight.toSvg({ size: 14, color: 'currentColor', weight: 'Outline' }),
+  chevronRightSm: ChevronRight.toSvg({ size: 12, color: 'currentColor', weight: 'Outline' }),
   copy: Copy.toSvg(opts),
   copySuccess: TickCircle.toSvg({ size: 16, color: 'currentColor', weight: 'Filled' }),
+  copyError: CloseCircle.toSvg(opts),
   clock: Clock.toSvg({ size: 14, color: 'currentColor', weight: 'Outline' }),
   search: Search.toSvg(opts20),
   menu: Menu.toSvg(opts24),
@@ -36,4 +43,8 @@ export const Icons = {
   user: User.toSvg(opts20),
   bell: Bell.toSvg(opts20),
   settings: Settings.toSvg(opts20),
+  sun: Sun.toSvg(opts20),
+  moon: Moon.toSvg(opts20),
+  tag: Tag.toSvg(opts),
+  terminal: BrowserTerminal.toSvg(opts24),
 } as const;

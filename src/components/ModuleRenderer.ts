@@ -96,18 +96,18 @@ export class ModuleRenderer {
 
     copyText()
       .then(() => {
-        btn.innerHTML = `<span class="material-symbols-outlined">done</span> COPIADO`;
+        btn.innerHTML = `${Icons.copySuccess} COPIADO`;
         btn.classList.add('copied');
         setTimeout(() => {
-          btn.innerHTML = `<span class="material-symbols-outlined">content_copy</span> COPIAR CÓDIGO`;
+          btn.innerHTML = `${Icons.copy} COPIAR CÓDIGO`;
           btn.classList.remove('copied');
         }, 2000);
       })
       .catch(() => {
-        btn.innerHTML = `<span class="material-symbols-outlined">error</span> ERROR`;
+        btn.innerHTML = `${Icons.copyError} ERROR`;
         btn.classList.add('copy-error');
         setTimeout(() => {
-          btn.innerHTML = `<span class="material-symbols-outlined">content_copy</span> COPIAR CÓDIGO`;
+          btn.innerHTML = `${Icons.copy} COPIAR CÓDIGO`;
           btn.classList.remove('copy-error');
         }, 2000);
       });
@@ -169,7 +169,7 @@ export class ModuleRenderer {
       const btn = document.createElement('button');
       btn.className = 'copy-btn';
       btn.setAttribute('aria-label', 'Copiar código');
-      btn.innerHTML = `<span class="material-symbols-outlined">content_copy</span> COPIAR CÓDIGO`;
+      btn.innerHTML = `${Icons.copy} COPIAR CÓDIGO`;
       titlebar.appendChild(btn);
     });
   }
@@ -218,9 +218,9 @@ export class ModuleRenderer {
     const breadcrumbHtml = `
       <nav aria-label="breadcrumb" class="breadcrumb">
         <a href="#nivel-0/modulo-1">Cursos</a>
-        <span class="breadcrumb-sep"><span class="material-symbols-outlined" style="font-size:0.75rem">chevron_right</span></span>
+        <span class="breadcrumb-sep">${Icons.chevronRightSm}</span>
         <a href="#nivel-${level}/modulo-1">${escapeHtml(levelTitle)} — ${escapeHtml(levelSubtitle)}</a>
-        <span class="breadcrumb-sep"><span class="material-symbols-outlined" style="font-size:0.75rem">chevron_right</span></span>
+        <span class="breadcrumb-sep">${Icons.chevronRightSm}</span>
         <span class="breadcrumb-current" aria-current="page">${escapeHtml(content.title)}</span>
       </nav>
     `;
@@ -231,7 +231,7 @@ export class ModuleRenderer {
         <div class="module-hero-bg-glow"></div>
         <div class="module-tags">
           <span class="module-requisite-tag">
-            <span class="material-symbols-outlined">label</span>
+            ${Icons.tag}
             ${escapeHtml(badge)}
           </span>
           <span class="module-level-label">${escapeHtml(levelTitle)} — ${escapeHtml(levelSubtitle)}</span>
@@ -247,7 +247,7 @@ export class ModuleRenderer {
       <div class="module-steps">${stepsHtml}</div>
       <nav class="module-nav">
         <button class="nav-btn prev-btn" ${prevBtnAttrs}>
-          <span class="nav-btn-icon"><span class="material-symbols-outlined">arrow_back</span></span>
+          <span class="nav-btn-icon">${Icons.arrowLeft}</span>
           <span class="nav-btn-info">
             <span class="nav-btn-label">ANTERIOR</span>
             <span class="nav-btn-title">${escapeHtml(prevTitle)}</span>
@@ -258,7 +258,7 @@ export class ModuleRenderer {
             <span class="nav-btn-label">SIGUIENTE</span>
             <span class="nav-btn-title">${escapeHtml(nextTitle)}</span>
           </span>
-          <span class="nav-btn-icon"><span class="material-symbols-outlined">arrow_forward</span></span>
+          <span class="nav-btn-icon">${Icons.arrowRight}</span>
         </button>
       </nav>
     `;
@@ -298,6 +298,17 @@ export class ModuleRenderer {
   }
 
   private renderWelcome(): void {
+    const pathNodes = levelRegistry.map(lvl => {
+      const slug = sanitizeBadge(lvl.badge);
+      return `
+        <div class="lp-node" onclick="location.hash='nivel-${lvl.id}/modulo-1'" role="button" tabindex="0">
+          <div class="lp-node-num">Nivel ${lvl.id}</div>
+          <div class="lp-node-title">${escapeHtml(lvl.title)}</div>
+          <span class="lp-node-badge badge-${slug}">${escapeHtml(lvl.badge)}</span>
+        </div>
+      `;
+    }).join('');
+
     this.contentEl.innerHTML = `
       <div class="welcome-screen">
         <h2>Bienvenido al Curso Completo de <span>Ansible</span></h2>
@@ -318,6 +329,10 @@ export class ModuleRenderer {
         </div>
         <p>Seleccioná un nivel en el menú lateral para comenzar, o empezá desde el principio.</p>
         <button class="start-btn" onclick="location.hash='#nivel-0/modulo-1'">Comenzar desde el principio →</button>
+        <div class="learning-path">
+          <div class="learning-path-title">Mapa del curso</div>
+          <div class="learning-path-grid">${pathNodes}</div>
+        </div>
       </div>`;
   }
 

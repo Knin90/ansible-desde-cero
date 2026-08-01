@@ -19,6 +19,10 @@ export const nivel1Modules: ModuleContent[] = [
             <li><strong>SaltStack</strong>: más flexible pero también basado en agentes y complejo de operar</li>
             <li><strong>CFEngine</strong>: poderoso pero con una sintaxis críptica</li>
           </ul>
+          <div class="analogy-box">
+            <div class="analogy-box-header">💡 Analogía</div>
+            <p>Imaginate que tenés 200 empleados y querés darles a todos la misma instrucción. Podés llamar a cada uno por teléfono (scripts manuales), o podés enviar un memorando a todos a la vez y que ellos lo apliquen (Puppet/Chef — modelo pull), o podés tener un mensajero que va a entregar el mensaje a cada uno directamente cuando vos lo ordenés (Ansible — modelo push).</p>
+          </div>
           <div class="highlight-box">
             <p><strong>El patrón común:</strong> todas estas herramientas requerían agentes instalados en los servidores, lenguajes de configuración propios (DSL), o ambos. El equipo de operaciones necesitaba aprender un nuevo lenguaje solo para automatizar su trabajo.</p>
           </div>
@@ -179,9 +183,42 @@ export const nivel1Modules: ModuleContent[] = [
           <div class="highlight-box">
             <p>Ansible nació en 2012 como respuesta a la complejidad de Puppet y Chef. Su filosofía de agentless + YAML + SSH nativo lo llevó a convertirse en la herramienta de automatización más popular del mundo, adquirida por Red Hat en 2015 por $150M.</p>
           </div>
-          <div class="challenge-box">
-            <div class="challenge-title">🎯 Reflexión</div>
-            <div class="challenge-body">¿Qué herramienta de automatización estás usando actualmente en tu trabajo o proyecto? ¿Qué problemas tenés con ella que Ansible podría resolver?</div>
+          <div class="lab-box">
+            <div class="lab-box-header">🧪 Laboratorio</div>
+            <div class="lab-section">
+              <div class="lab-section-title">Objetivo</div>
+              <p style="font-size:0.9rem;color:var(--color-text-muted);line-height:1.65">Reflexionar sobre el contexto histórico de Ansible y preparar el terreno para entender su arquitectura.</p>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Pasos</div>
+              <ol>
+                <li>Buscá en internet el blog post original de Michael DeHaan de 2012 sobre Ansible</li>
+                <li>Identificá qué problemas concretos menciona que quería resolver</li>
+                <li>Compará con las herramientas que usás actualmente en tu trabajo o proyecto</li>
+              </ol>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Verificación</div>
+              <ul>
+                <li>Podés nombrar al menos 3 diferencias concretas entre Ansible y Puppet/Chef</li>
+                <li>Entendés por qué Red Hat pagó $150M por una herramienta open source gratuita</li>
+              </ul>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Preguntas para reflexionar</div>
+              <ul>
+                <li>¿Qué herramienta de automatización usás actualmente? ¿Qué problemas tenés con ella?</li>
+                <li>¿Cuándo NO usarías Ansible? ¿Cuál sería la alternativa?</li>
+              </ul>
+            </div>
+          </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Arquitectura de Ansible</div>
+              <div class="next-chapter-desc">Conocés la historia; ahora entendés cómo funciona internamente: control node, managed nodes, inventario, playbooks y SSH.</div>
+            </div>
           </div>
         `
       }
@@ -205,6 +242,10 @@ export const nivel1Modules: ModuleContent[] = [
             <li><strong>Playbook</strong>: las instrucciones de configuración en YAML</li>
             <li><strong>SSH + Python</strong>: el mecanismo de transporte y ejecución</li>
           </ol>
+          <div class="analogy-box">
+            <div class="analogy-box-header">💡 Analogía</div>
+            <p>Pensá en Ansible como una empresa de logística. Vos sos la central de operaciones (control node), el camión es SSH, los almacenes son los servidores (managed nodes), el manifiesto de carga es el playbook, y el directorio de destinos es el inventario.</p>
+          </div>
           <p>El diagrama de abajo muestra cómo estos componentes se relacionan:</p>
         `
       },
@@ -316,6 +357,10 @@ bases_de_datos</code></pre>
             <li>Borra el archivo temporal de <code>/tmp</code></li>
             <li>Cierra la conexión SSH (o la mantiene con multiplexing)</li>
           </ol>
+          <div class="analogy-box">
+            <div class="analogy-box-header">💡 Analogía</div>
+            <p>SSH es el cartero de Ansible. Cada vez que Ansible necesita hacer algo en un servidor, le entrega el mensaje (el módulo Python), espera que lo ejecute, y trae la respuesta de vuelta.</p>
+          </div>
           <div class="code-block-wrapper">
             <div class="code-block-titlebar"><span class="code-block-lang">bash</span><span class="code-block-filename">ver-conexion.sh</span></div>
             <pre class="language-bash"><code class="language-bash"># Ejecutar con máximo verbose para ver cada paso SSH
@@ -383,9 +428,43 @@ ansible all -m ping -vvv
           <div class="highlight-box">
             <p><strong>Control Node</strong> (tiene Ansible) → SSH → <strong>Managed Node</strong> (tiene Python) → ejecuta módulo → devuelve JSON → <strong>Control Node</strong> muestra resultado.</p>
           </div>
-          <div class="challenge-box">
-            <div class="challenge-title">🎯 Desafío</div>
-            <div class="challenge-body">Creá un inventario con al menos 2 hosts (pueden ser VMs locales o máquinas de tu red). Verificá que podés conectarte por SSH sin contraseña. Ejecutá <code>ansible all -m ping</code> con verbose (<code>-vv</code>) y observá el proceso SSH en la salida.</div>
+          <div class="lab-box">
+            <div class="lab-box-header">🧪 Laboratorio</div>
+            <div class="lab-section">
+              <div class="lab-section-title">Objetivo</div>
+              <p style="font-size:0.9rem;color:var(--color-text-muted);line-height:1.65">Observar en tiempo real cómo Ansible usa SSH para conectarse a los hosts y ejecutar módulos.</p>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Pasos</div>
+              <ol>
+                <li>Creá un inventario con al menos 2 hosts (pueden ser VMs locales)</li>
+                <li>Verificá conectividad SSH sin contraseña a ambos hosts</li>
+                <li>Ejecutá <code>ansible all -m ping -vv</code> y observá la salida</li>
+                <li>Ejecutá <code>ansible all -m ping -vvv</code> para ver los comandos SSH exactos</li>
+              </ol>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Verificación</div>
+              <ul>
+                <li>Ambos hosts responden con <code>SUCCESS</code> y <code>"ping": "pong"</code></li>
+                <li>En la salida <code>-vvv</code> podés ver la línea <code>PUT /tmp/.ansible/tmp/.../AnsiballZ_ping.py</code></li>
+              </ul>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Preguntas para reflexionar</div>
+              <ul>
+                <li>¿Cuántas conexiones SSH abre Ansible por tarea cuando hay 10 hosts?</li>
+                <li>¿Qué ventaja tiene el SSH multiplexing (<code>ControlPersist</code>) para Ansible?</li>
+              </ul>
+            </div>
+          </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Características clave de Ansible</div>
+              <div class="next-chapter-desc">Agentless, idempotencia, declarativo, push model, SSH nativo — las cinco decisiones de diseño que hacen que Ansible sea único.</div>
+            </div>
           </div>
         `
       }
@@ -445,6 +524,10 @@ ansible all -m ping -vvv
 # Segunda ejecución:  changed=0 (ya estaba instalado y corriendo)
 # Décima ejecución:   changed=0 (mismo resultado)</code></pre>
           </div>
+          <div class="analogy-box">
+            <div class="analogy-box-header">💡 Analogía</div>
+            <p>La idempotencia en Ansible es como pintar una pared de blanco. Si la pared ya es blanca, pasarle la brocha no cambia nada. Si es roja, la pinta de blanco. El resultado final es siempre el mismo sin importar el estado inicial.</p>
+          </div>
           <div class="warning-box">
             <span class="box-icon">⚠️</span>
             <div class="box-content">No todos los módulos son idempotentes. El módulo <code>shell</code> y <code>command</code> NO son idempotentes por defecto — ejecutan el comando cada vez. Para hacerlos idempotentes, usá <code>creates</code>, <code>removes</code>, o <code>changed_when</code>.</div>
@@ -489,6 +572,10 @@ systemctl enable nginx
 
 # Ansible determina los pasos necesarios.
 # No importa el estado actual — el resultado es siempre el mismo.</code></pre>
+          </div>
+          <div class="analogy-box">
+            <div class="analogy-box-header">💡 Analogía</div>
+            <p>Es como pedirle a un arquitecto que construya una casa con 3 habitaciones. Vos describís el resultado (casa con 3 habitaciones), no los pasos (comprar ladrillos, mezclar cemento). El arquitecto decide cómo lograrlo.</p>
           </div>
         `
       },
@@ -598,9 +685,44 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=60s
           <div class="highlight-box">
             <p>Las cinco características de Ansible — agentless, idempotencia, declarativo, push model, SSH nativo — no son solo marketing. Son decisiones de diseño que se refuerzan mutuamente y que hacen que Ansible sea fiable, predecible y fácil de razonar.</p>
           </div>
-          <div class="challenge-box">
-            <div class="challenge-title">🎯 Desafío</div>
-            <div class="challenge-body">Ejecutá el mismo playbook dos veces. Observá la salida: la primera vez verás <code>changed</code> en las tareas. La segunda vez todo debería ser <code>ok</code>. Esto es la idempotencia en acción. Si algo cambia en la segunda ejecución, hay un bug de idempotencia en tu playbook.</div>
+          <div class="lab-box">
+            <div class="lab-box-header">🧪 Laboratorio</div>
+            <div class="lab-section">
+              <div class="lab-section-title">Objetivo</div>
+              <p style="font-size:0.9rem;color:var(--color-text-muted);line-height:1.65">Verificar la idempotencia en la práctica ejecutando el mismo playbook dos veces y comparando los resultados.</p>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Pasos</div>
+              <ol>
+                <li>Creá un playbook que instale nginx y lo inicie</li>
+                <li>Ejecutalo por primera vez: anotá cuántas tareas dicen <code>changed</code></li>
+                <li>Ejecutalo por segunda vez: todas las tareas deberían decir <code>ok</code></li>
+                <li>Detené nginx manualmente con <code>systemctl stop nginx</code></li>
+                <li>Ejecutalo por tercera vez: observá cuál tarea dice <code>changed</code> ahora</li>
+              </ol>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Verificación</div>
+              <ul>
+                <li>Segunda ejecución: <code>changed=0</code> en todas las tareas</li>
+                <li>Tercera ejecución (después de detener nginx): solo la tarea de <code>service</code> dice <code>changed=1</code></li>
+              </ul>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Preguntas para reflexionar</div>
+              <ul>
+                <li>¿Por qué el módulo <code>shell</code> no es idempotente por defecto?</li>
+                <li>¿Cómo usarías <code>changed_when: false</code> para suprimir un cambio que no es realmente un cambio?</li>
+              </ul>
+            </div>
+          </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Instalación de Ansible</div>
+              <div class="next-chapter-desc">Las bases teóricas están. Ahora instalamos Ansible en el control node y verificamos que todo funciona.</div>
+            </div>
           </div>
         `
       }

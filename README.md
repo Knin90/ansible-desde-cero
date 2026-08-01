@@ -6,6 +6,8 @@ SPA interactiva para aprender Ansible desde cero hasta nivel experto. 23 niveles
 
 Construido con Vite 6 + TypeScript puro, sin frameworks de UI. El contenido está hardcodeado en TypeScript como datos estructurados (no CMS, no Markdown externo).
 
+Cada módulo incluye: objetivo, tiempo estimado, prerequisitos, glosario contextual con tooltips, mini cuestionario, casos reales, sección de troubleshooting y laboratorio práctico.
+
 ---
 
 ## Stack Técnico
@@ -36,19 +38,23 @@ src/
 ├── components/
 │   ├── contentRouter.ts        # Switch que mapea (level, module) → ModuleContent
 │   ├── ModuleRenderer.ts       # Renderiza módulo completo, diagramas y copy buttons
-│   ├── contentRouter.test.ts
+│   └── contentRouter.test.ts
 │
 ├── levels/
 │   ├── types.ts                # Interfaces: StepContent, ModuleContent, LevelMeta, ModuleMeta
 │   ├── registry.ts             # levelRegistry: metadatos de todos los niveles y módulos
-│   ├── nivel0.ts               # Contenido: Fundamentos Previos (4 módulos, ~1100 líneas)
-│   ├── nivel1.ts               # Contenido: Introducción a Ansible (5 módulos, ~1060 líneas)
-│   ├── nivel2.ts               # Contenido: Arquitectura Interna (5 módulos)
-│   ├── nivel3.ts               # Contenido: Inventarios (5 módulos)
-│   ├── nivel4.ts               # Contenido: Comandos CLI (9 módulos)
-│   ├── nivel5.ts               # Contenido: Playbooks en Profundidad (7 módulos)
-│   ├── nivel6to22.ts           # Contenido: Niveles 6–22 (~4500 líneas)
+│   ├── nivel0.ts               # Fundamentos Previos (4 módulos, ~2000 líneas)
+│   ├── nivel1.ts               # Introducción a Ansible (5 módulos, ~2200 líneas)
+│   ├── nivel2.ts               # Arquitectura Interna (5 módulos, ~2400 líneas)
+│   ├── nivel3.ts               # Inventarios (5 módulos, ~2300 líneas)
+│   ├── nivel4.ts               # Comandos CLI (9 módulos, ~3500 líneas)
+│   ├── nivel5.ts               # Playbooks en Profundidad (7 módulos, ~3200 líneas)
+│   ├── nivel6to22.ts           # Niveles 6–22 (~10000 líneas, niveles 9/17/18/22 completos)
 │   └── registry.test.ts
+│
+├── content/
+│   ├── cheatSheet.ts           # Datos del Cheat Sheet (6 categorías)
+│   └── snippets.ts             # Biblioteca de snippets (6 categorías)
 │
 ├── diagrams/
 │   ├── DiagramEngine.ts        # Base class para diagramas SVG
@@ -91,6 +97,8 @@ window.location.hash → getCurrentRoute() → { level, module }
 
 `getPrevNext()` construye una lista plana de todos los pares `[nivel, módulo]` desde `levelRegistry` y devuelve el par anterior y siguiente con disponibilidad de contenido.
 
+Páginas especiales (`cheat-sheet`, `snippets`) se detectan en `getCurrentRoute()` y renderizan a través de `SPECIAL_PAGES` map en el router.
+
 ### Contenido
 
 ```
@@ -100,7 +108,22 @@ getModuleContent(level, module)
   → ModuleContent | undefined
 ```
 
-`ModuleContent` tiene: `levelId`, `moduleId`, `title`, `objective`, `steps[]`. Cada step tiene `title` y `body` (puede contener HTML crudo para code blocks).
+`ModuleContent` incluye:
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `levelId` / `moduleId` | number | Identificadores |
+| `title` | string | Título del módulo |
+| `objective` | string | Objetivo principal |
+| `duration` | string | Tiempo estimado (ej. "2–3 horas") |
+| `objectives` | string[] | Lista de objetivos específicos |
+| `prerequisites` | string[] | Prerequisitos del módulo |
+| `steps` | StepContent[] | Pasos con `title` y `body` (HTML) |
+| `glossary` | GlossaryTerm[] | Términos con tooltip |
+| `quiz` | QuizQuestion[] | Mini cuestionario con opciones |
+| `troubleshooting` | TroubleshootingItem[] | Errores comunes + causa + solución |
+
+El `body` de cada step puede contener HTML con code blocks, cajas pedagógicas (`analogy-box`, `tip-box`, `warning-box`, `challenge-box`, `tech-term-box`, `lab-box`) y elementos interactivos.
 
 ### Renderizado
 
@@ -108,8 +131,8 @@ getModuleContent(level, module)
 
 1. Llama `ensurePrism()` (carga lazy)
 2. Busca metadata en `levelRegistry`
-3. Llama `getModuleContent()` 
-4. Llama `renderModule()` → inyecta HTML completo
+3. Llama `getModuleContent()`
+4. Llama `renderModule()` → inyecta HTML completo (hero, prerequisitos, steps, glosario, quiz, troubleshooting)
 5. Llama `renderDiagram()` → monta SVG si aplica
 6. Llama `injectCopyButtons()` → agrega botones en `.code-block-titlebar`
 7. Scroll to top
@@ -118,7 +141,7 @@ getModuleContent(level, module)
 
 ### Diagramas SVG
 
-Cada diagrama extiende `DiagramEngine` e implementa `render()`. Se montan en `#diagram-slot` dentro del contenido. Hay 5 diagramas disponibles, uno por nivel/módulo específico:
+Cada diagrama extiende `DiagramEngine` e implementa `render()`. Se montan en `#diagram-slot` dentro del contenido. Hay 5 diagramas disponibles:
 
 | Nivel | Módulo | Diagrama |
 |---|---|---|
@@ -130,12 +153,13 @@ Cada diagrama extiende `DiagramEngine` e implementa `render()`. Se montan en `#d
 
 ### Sidebar
 
-Construida dinámicamente desde `levelRegistry`. Soporta:
+Construida dinámicamente desde `levelRegistry`. Oculta por defecto — se abre/cierra con el botón ≡ del top bar. Soporta:
+
+- Apertura/cierre con animación `transform: translateX` en todos los viewports
 - Expansión/colapso por nivel (toggle de `.level-group`)
 - Búsqueda en tiempo real filtrando `.module-item`
 - Estado activo sincronizado con el hash
-- Modo collapsed en desktop (persiste en `localStorage`)
-- Modo mobile: overlay con backdrop y clase `.open`
+- Backdrop con cierre al hacer clic (mobile y desktop)
 
 ### Tema
 
@@ -147,33 +171,34 @@ Dos temas: `dark` (default) y `light`. Se aplican como clase en `<html>`. Persis
 
 ### Niveles y Badges
 
-| Nivel | Subtítulo | Badge |
-|---|---|---|
-| 0 | Fundamentos Previos | Requisito |
-| 1 | Introducción a Ansible | Principiante |
-| 2 | Arquitectura Interna | Principiante+ |
-| 3 | Inventarios | Principiante+ |
-| 4 | Comandos CLI | Intermedio |
-| 5 | Playbooks en Profundidad | Intermedio |
-| 6 | Variables | Intermedio |
-| 7 | Facts | Intermedio |
-| 8 | Módulos | Intermedio |
-| 9 | Jinja2 Completo | Intermedio |
-| 10 | Condicionales | Intermedio |
-| 11 | Loops Avanzados | Avanzado |
-| 12 | Roles | Avanzado |
-| 13 | Plugins | Avanzado |
-| 14 | Collections | Avanzado |
-| 15 | Vault | Avanzado |
-| 16 | Optimización | Avanzado |
-| 17 | Testing | Avanzado |
-| 18 | Automatización Empresarial | Experto |
-| 19 | Desarrollo Interno | Experto |
-| 20 | Código Fuente de Ansible | Experto |
-| 21 | Proyecto Integrador | Experto |
-| 22 | Casos Reales y Buenas Prácticas | Experto |
+| Nivel | Subtítulo | Badge | Estado |
+|---|---|---|---|
+| 0 | Fundamentos Previos | Requisito | Completo |
+| 1 | Introducción a Ansible | Principiante | Completo |
+| 2 | Arquitectura Interna | Principiante+ | Completo |
+| 3 | Inventarios | Principiante+ | Completo |
+| 4 | Comandos CLI | Intermedio | Completo |
+| 5 | Playbooks en Profundidad | Intermedio | Completo |
+| 6 | Variables | Intermedio | Básico |
+| 7 | Facts | Intermedio | Básico |
+| 8 | Módulos | Intermedio | Básico |
+| 9 | Jinja2 Completo | Intermedio | Completo |
+| 10 | Condicionales | Intermedio | Básico |
+| 11 | Loops Avanzados | Avanzado | Básico |
+| 12 | Roles | Avanzado | Básico |
+| 13 | Plugins | Avanzado | Básico |
+| 14 | Collections | Avanzado | Básico |
+| 15 | Vault | Avanzado | Básico |
+| 16 | Optimización | Avanzado | Básico |
+| 17 | Testing y CI/CD | Avanzado | Completo |
+| 18 | Docker y Contenedores | Experto | Completo |
+| 19 | Desarrollo Interno | Experto | Básico |
+| 20 | Código Fuente de Ansible | Experto | Básico |
+| 21 | Proyecto Integrador | Experto | Básico |
+| 22 | Hardening y Buenas Prácticas | Experto | Completo |
 
-Contenido completo escrito para niveles 0–5 (~8000 líneas de TS). Niveles 6–22 generados/resumidos en `nivel6to22.ts` (~4500 líneas).
+**Completo**: módulos con todas las cajas pedagógicas, quiz, troubleshooting y labs.  
+**Básico**: estructura presente, contenido a expandir.
 
 ---
 
@@ -211,9 +236,10 @@ npm run test:watch
 
 - **Sin frameworks**: todo DOM imperativo.
 - **Sin dependencias runtime** salvo `prismjs` (lazy) y `reicon` (íconos).
-- **Contenido en TS**: los módulos de contenido son arrays de `ModuleContent`. El `body` de cada step puede tener HTML con code blocks pre-formateados.
+- **Contenido en TS**: los módulos son arrays de `ModuleContent`. El `body` de cada step puede tener HTML con code blocks pre-formateados y cajas pedagógicas.
 - **CSS variables**: todos los colores, tamaños y breakpoints viven en `theme.css`.
 - **Hash routing**: no hay server-side routing. La URL siempre es `index.html#nivel-N/modulo-M`.
 - **Scroll to top**: `ModuleRenderer.render()` hace scroll to top en `#content` al cambiar de módulo.
 - **Copy buttons**: se inyectan dinámicamente buscando `.code-block-titlebar` en el HTML renderizado.
 - **Prism**: carga lazy la primera vez que se renderiza un módulo.
+- **Cajas pedagógicas**: `analogy-box`, `tip-box`, `warning-box`, `challenge-box`, `tech-term-box`, `highlight-box`, `lab-box` — definidas en `module.css`.

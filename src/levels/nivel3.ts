@@ -13,6 +13,63 @@ export const nivel3Modules: ModuleContent[] = [
       'Usar rangos numéricos y alfabéticos para grupos de hosts regulares',
       'Verificar el inventario resultante con ansible-inventory --graph',
     ],
+    prerequisites: [
+      'Nivel 0 completo: instalación y configuración básica de Ansible',
+      'Nivel 1 completo: comandos ad-hoc y estructura de playbooks',
+    ],
+    realWorldCase: 'Un equipo de operaciones gestiona 40 servidores divididos en web, base de datos y caché: con un inventario INI bien estructurado pueden lanzar actualizaciones solo al grupo correcto con un único comando, sin tocar el resto.',
+    quiz: [
+      {
+        question: '¿Qué sintaxis se usa en un inventario INI para definir variables comunes a todos los hosts de un grupo llamado "produccion"?',
+        options: [
+          '[produccion]',
+          '[produccion:vars]',
+          '[produccion:children]',
+          '[produccion/vars]',
+        ],
+        correctIndex: 1,
+        explanation: 'La sección [grupo:vars] es la forma correcta en formato INI para definir variables que aplican a todos los hosts de ese grupo. [grupo:children] define subgrupos, no variables.',
+      },
+      {
+        question: '¿Qué expande el rango web[01:03].empresa.com en un inventario INI?',
+        options: [
+          'web01.empresa.com y web03.empresa.com únicamente',
+          'web0.empresa.com, web1.empresa.com, web2.empresa.com y web3.empresa.com',
+          'web01.empresa.com, web02.empresa.com y web03.empresa.com',
+          'web1.empresa.com, web2.empresa.com y web3.empresa.com',
+        ],
+        correctIndex: 2,
+        explanation: 'Los rangos numéricos en Ansible son inclusivos en ambos extremos. [01:03] genera 01, 02 y 03, manteniendo el padding de ceros, resultando en web01, web02 y web03.',
+      },
+      {
+        question: '¿Qué hace la sección [produccion:children] en un inventario INI?',
+        options: [
+          'Define variables heredadas por los hijos de produccion',
+          'Lista los hosts hijos del grupo produccion',
+          'Define qué grupos forman parte del grupo produccion',
+          'Crea subgrupos automáticamente a partir de produccion',
+        ],
+        correctIndex: 2,
+        explanation: '[grupo:children] declara qué otros grupos son miembros del grupo padre. Los hosts de esos grupos heredan las variables de [grupo:vars] y Ansible los incluye al hacer plays contra ese grupo.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'ERROR! No inventory was parsed, only implicit localhost is available',
+        cause: 'Ansible no encuentra el archivo de inventario porque la ruta es incorrecta o no se pasó con -i.',
+        fix: 'Verificar con ansible-inventory -i ruta/al/inventario.ini --list. Si el archivo existe, comprobar que ansible.cfg tenga inventory = inventario/hosts.ini en la sección [defaults].',
+      },
+      {
+        error: 'El host aparece en el grupo incorrecto o no aparece en ningún grupo',
+        cause: 'Error tipográfico en el nombre del grupo o el hostname está definido fuera de cualquier sección de grupo (va a "ungrouped").',
+        fix: 'Ejecutar ansible-inventory -i hosts.ini --graph para ver la estructura real. Los hosts sin sección de grupo quedan en [ungrouped] — moverlos a la sección correcta.',
+      },
+      {
+        error: 'Las variables inline del host no están siendo usadas: se usa el valor del grupo',
+        cause: 'Las variables de grupo definidas en el playbook con vars: sobreescriben las variables de inventario porque tienen mayor precedencia.',
+        fix: 'Verificar con ansible -i hosts.ini web1 -m debug -a "var=nombre_variable". Las variables inline de host (inventario) tienen baja precedencia: moverlas a host_vars/ o usar -e para forzar el valor.',
+      },
+    ],
     steps: [
       {
         title: 'Formato INI — estructura básica',
@@ -99,6 +156,63 @@ kafka[01:05:2].empresa.com</code></pre>
     title: 'Inventario estático YAML',
     objective: 'Aprender el formato YAML para inventarios, más expresivo y estructurado que INI para inventarios complejos.',
     duration: '1 hora',
+    prerequisites: [
+      'Nivel 3, Módulo 1: Inventario estático INI (estructura de grupos y variables)',
+      'Sintaxis YAML básica: listas, diccionarios y anidamiento',
+    ],
+    realWorldCase: 'Al incorporar el inventario a un repositorio Git con revisión de código, el formato YAML es preferido porque los IDEs pueden validarlo en tiempo real y los pull requests muestran diffs más legibles que el formato INI.',
+    quiz: [
+      {
+        question: '¿Cuál es la clave correcta en YAML para definir grupos hijos dentro de un grupo padre?',
+        options: [
+          'subgroups:',
+          'members:',
+          'children:',
+          'groups:',
+        ],
+        correctIndex: 2,
+        explanation: 'En el formato YAML de inventario Ansible, "children:" es la clave reservada para definir subgrupos dentro de un grupo padre, equivalente a la sección [grupo:children] del formato INI.',
+      },
+      {
+        question: '¿Qué ventaja tiene el formato YAML de inventario sobre el formato INI para las variables?',
+        options: [
+          'Las variables YAML tienen mayor precedencia que las INI',
+          'YAML permite variables complejas como listas y diccionarios; INI solo soporta strings',
+          'YAML es más rápido de procesar por Ansible',
+          'En YAML no es necesario definir secciones de grupos',
+        ],
+        correctIndex: 1,
+        explanation: 'El formato INI solo soporta pares clave=valor con strings simples. YAML permite listas (- elemento) y diccionarios anidados como valores de variables, lo que es imposible en INI.',
+      },
+      {
+        question: 'En un inventario YAML, ¿dónde se definen las variables del grupo "servidores_web"?',
+        options: [
+          'Bajo la clave "all.servidores_web.variables:"',
+          'Bajo la clave "vars:" dentro de "servidores_web:"',
+          'En un archivo separado obligatoriamente',
+          'Bajo la clave "group_vars:" al nivel de "all:"',
+        ],
+        correctIndex: 1,
+        explanation: 'En el inventario YAML, las variables de un grupo se definen bajo la clave "vars:" anidada directamente dentro de ese grupo. Esto es equivalente a la sección [grupo:vars] del formato INI.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'ERROR! Syntax Error while loading YAML filename, found character that cannot start any token',
+        cause: 'El archivo de inventario YAML contiene tabs (tabulaciones) en lugar de espacios, o tiene caracteres especiales sin escapar.',
+        fix: 'Configurar el editor para usar espacios en lugar de tabs y validar el YAML con: python3 -c "import yaml; yaml.safe_load(open(\'hosts.yml\'))" antes de ejecutar Ansible.',
+      },
+      {
+        error: 'Los hosts del inventario YAML no aparecen al hacer ansible-inventory --list',
+        cause: 'La estructura YAML no tiene el nivel raíz "all:" requerido, o los hosts están definidos bajo "hosts:" pero sin el nivel de grupo correcto.',
+        fix: 'Todo inventario YAML debe comenzar con "all:" como raíz. Los hosts van bajo "all.hosts:" o bajo "all.children.<grupo>.hosts:". Verificar con ansible-inventory -i hosts.yml --graph.',
+      },
+      {
+        error: 'Las variables con listas o diccionarios no se aplican correctamente',
+        cause: 'Al mezclar inventario INI y YAML, se intenta usar sintaxis de lista YAML en un archivo INI, lo cual no es válido.',
+        fix: 'Las variables complejas (listas, diccionarios) solo son posibles en archivos YAML: inventario YAML, group_vars/*.yml o host_vars/*.yml. Migrar ese host o grupo a un archivo YAML.',
+      },
+    ],
     objectives: [
       'Escribir un inventario YAML equivalente a un inventario INI existente',
       'Definir variables complejas (listas y diccionarios) en el inventario YAML',
@@ -190,6 +304,64 @@ kafka[01:05:2].empresa.com</code></pre>
     title: 'Inventario dinámico',
     objective: 'Entender cómo funciona el inventario dinámico y cómo usar inventory plugins para obtener hosts automáticamente de proveedores cloud.',
     duration: '2 horas',
+    prerequisites: [
+      'Nivel 3, Módulo 2: Inventario estático YAML (estructura y formato)',
+      'Credenciales de AWS configuradas (aws configure) o variables de entorno AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY',
+      'Colección amazon.aws instalada: ansible-galaxy collection install amazon.aws',
+    ],
+    realWorldCase: 'Un equipo de plataforma gestiona un clúster de Kubernetes en AWS con instancias EC2 que escalan automáticamente: el inventory plugin de EC2 descubre y agrupa las instancias por tag de entorno en cada ejecución, eliminando la necesidad de actualizar el inventario manualmente tras cada escalado.',
+    quiz: [
+      {
+        question: '¿Cuál es la diferencia principal entre un script de inventario (legacy) y un inventory plugin (moderno)?',
+        options: [
+          'Los scripts son más rápidos; los plugins consumen más memoria',
+          'Los scripts son ejecutables externos que devuelven JSON; los plugins son módulos Python integrados en Ansible',
+          'Los scripts solo funcionan con AWS; los plugins funcionan con cualquier proveedor',
+          'Los plugins requieren Python 3.9+; los scripts funcionan con cualquier versión',
+        ],
+        correctIndex: 1,
+        explanation: 'Los scripts de inventario (legacy) son programas externos ejecutables que Ansible lanza y captura su salida JSON. Los inventory plugins son módulos Python nativos dentro de Ansible, más integrados, con mejor manejo de errores y configuración declarativa en YAML.',
+      },
+      {
+        question: '¿Qué hace la clave "keyed_groups" en la configuración del plugin aws_ec2?',
+        options: [
+          'Define qué campos de EC2 se usan como hostname del host',
+          'Filtra las instancias por sus tags antes de agregarlas al inventario',
+          'Crea grupos dinámicos automáticamente basados en valores de tags u otros atributos de EC2',
+          'Mapea claves SSH a grupos de hosts',
+        ],
+        correctIndex: 2,
+        explanation: 'keyed_groups toma un atributo de la instancia EC2 (como tags.Env o tags.Role) y crea automáticamente un grupo por cada valor único encontrado. Por ejemplo, si tags.Env tiene valores "produccion" y "staging", crea los grupos env_produccion y env_staging.',
+      },
+      {
+        question: '¿Cómo combina Ansible múltiples inventarios (estático + dinámico) en una sola ejecución?',
+        options: [
+          'Solo se puede usar un inventario a la vez; hay que elegir uno',
+          'Apuntando -i a un directorio, Ansible carga y combina todos los archivos de inventario que encuentra en él',
+          'Usando la directiva include_inventory: en ansible.cfg',
+          'Con el argumento --merge-inventories en la línea de comandos',
+        ],
+        correctIndex: 1,
+        explanation: 'Cuando se pasa un directorio con -i inventario/ (o se configura en ansible.cfg), Ansible carga todos los archivos de inventario válidos en ese directorio y los combina automáticamente, unificando grupos y variables de todas las fuentes.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'ERROR! Specified inventory directory inventario/ is not a directory or cannot be read',
+        cause: 'El directorio de inventario no existe o hay un error de permisos. También ocurre si se pasa una ruta con slash final que el sistema no resuelve.',
+        fix: 'Verificar que el directorio existe con ls -la inventario/ y que el usuario tiene permisos de lectura. Probar sin slash final: -i inventario.',
+      },
+      {
+        error: 'botocore.exceptions.NoCredentialsError: Unable to locate credentials',
+        cause: 'El plugin de AWS EC2 no encuentra las credenciales de AWS. No están configuradas en ~/.aws/credentials ni como variables de entorno.',
+        fix: 'Ejecutar "aws configure" para configurar credenciales, o exportar AWS_ACCESS_KEY_ID y AWS_SECRET_ACCESS_KEY antes de ejecutar Ansible. Verificar con "aws sts get-caller-identity".',
+      },
+      {
+        error: 'El inventario dinámico no descubre ningún host aunque existen instancias EC2',
+        cause: 'El filtro "instance-state-name: running" en el plugin excluye instancias detenidas, o las instancias están en una región no listada en "regions:".',
+        fix: 'Verificar las regiones configuradas y el estado de las instancias en la consola de AWS. Ampliar el filtro o agregar la región correcta en la lista "regions:" del archivo aws_ec2.yml.',
+      },
+    ],
     objectives: [
       'Configurar el inventory plugin de AWS EC2 para obtener hosts automáticamente',
       'Agrupar hosts dinámicos por tags con keyed_groups',
@@ -280,6 +452,63 @@ ansible-playbook -i inventario/ sitio.yml</code></pre>
     title: 'Variables de inventario — host_vars y group_vars',
     objective: 'Dominar la organización de variables de inventario usando los directorios host_vars y group_vars.',
     duration: '1.5 horas',
+    prerequisites: [
+      'Nivel 3, Módulo 3: Inventario dinámico (estructura de directorios de inventario)',
+      'Nivel 2: Roles y estructura de proyectos Ansible',
+    ],
+    realWorldCase: 'En un proyecto con 15 servidores web idénticos pero con diferente cantidad de CPUs, group_vars/servidores_web.yml define la configuración común de nginx y cada host_vars/webN.yml sobreescribe solo nginx_worker_processes con el valor correcto para ese servidor.',
+    quiz: [
+      {
+        question: '¿Dónde busca Ansible los directorios group_vars y host_vars automáticamente?',
+        options: [
+          'Solo en /etc/ansible/',
+          'Solo junto al archivo de inventario',
+          'Junto al archivo de inventario Y junto al playbook que se está ejecutando',
+          'Solo en el directorio actual donde se ejecuta ansible-playbook',
+        ],
+        correctIndex: 2,
+        explanation: 'Ansible busca group_vars/ y host_vars/ en dos lugares: junto al archivo/directorio de inventario, y junto al playbook. Esto permite tener variables globales del inventario y variables específicas del playbook sin conflictos.',
+      },
+      {
+        question: '¿Qué ventaja tiene crear un directorio host_vars/web1.empresa.com/ en lugar de un archivo host_vars/web1.empresa.com.yml?',
+        options: [
+          'El directorio tiene mayor precedencia que el archivo',
+          'Permite separar variables normales (vars.yml) de variables encriptadas (vault.yml) en archivos distintos',
+          'Ansible procesa los directorios más rápido que los archivos individuales',
+          'Es la única forma de que las variables de host sobreescriban las de grupo',
+        ],
+        correctIndex: 1,
+        explanation: 'Usar un directorio permite dividir las variables en múltiples archivos dentro de él. El patrón más común es vars.yml para variables en texto plano y vault.yml para secretos encriptados con ansible-vault, manteniendo los secretos separados del código normal.',
+      },
+      {
+        question: '¿Qué ocurre cuando la misma variable está definida en group_vars/servidores_web.yml y en host_vars/web1.empresa.com.yml?',
+        options: [
+          'Ansible lanza un error por variable duplicada',
+          'El valor de group_vars gana porque los grupos tienen mayor precedencia',
+          'El valor de host_vars gana porque las variables de host tienen mayor precedencia que las de grupo',
+          'Ansible usa el valor que encuentre primero alfabéticamente',
+        ],
+        correctIndex: 2,
+        explanation: 'Las variables de host siempre tienen mayor precedencia que las variables de grupo en Ansible. Un valor en host_vars/ sobreescribe el mismo nombre de variable definido en group_vars/, lo que permite customizaciones por host sin duplicar toda la configuración.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'Las variables de group_vars no se aplican aunque el archivo existe',
+        cause: 'El nombre del archivo en group_vars/ no coincide exactamente con el nombre del grupo en el inventario (diferencia de mayúsculas, guiones vs guiones bajos).',
+        fix: 'Verificar que group_vars/nombre_grupo.yml use exactamente el mismo nombre que aparece en el inventario. Ansible es case-sensitive: "Servidores_Web" y "servidores_web" son grupos distintos.',
+      },
+      {
+        error: 'ansible-vault encrypted variables are not being decrypted',
+        cause: 'El archivo vault.yml dentro de host_vars/ o group_vars/ está encriptado pero no se proporcionó la contraseña del vault al ejecutar Ansible.',
+        fix: 'Agregar --ask-vault-pass o --vault-password-file ~/.vault_pass al comando ansible-playbook. También configurar vault_password_file en ansible.cfg para evitar especificarlo cada vez.',
+      },
+      {
+        error: 'Las variables de host_vars no se ven cuando el host se descubre por inventario dinámico',
+        cause: 'El nombre usado como clave en host_vars/ no coincide con el hostname que asigna el plugin dinámico. Los plugins suelen usar el ID de instancia o el DNS público.',
+        fix: 'Ejecutar ansible-inventory --list para ver el hostname exacto que asigna el plugin. Renombrar el archivo en host_vars/ para que coincida, o usar la clave "hostnames:" en el plugin para controlar qué se usa como nombre.',
+      },
+    ],
     objectives: [
       'Estructurar variables en group_vars/all.yml, group_vars/<grupo>.yml y host_vars/',
       'Separar variables normales de variables encriptadas con vault en archivos distintos',
@@ -349,6 +578,63 @@ backup_schedule: "0 2 * * *"</code></pre>
     title: 'Precedencia de variables en el inventario',
     objective: 'Entender el orden de precedencia completo de las variables de inventario para predecir qué valor ganará cuando hay conflictos.',
     duration: '1 hora',
+    prerequisites: [
+      'Nivel 3, Módulo 4: Variables de inventario — host_vars y group_vars',
+      'Nivel 2: Variables en playbooks (vars:, set_fact, register)',
+    ],
+    realWorldCase: 'Un equipo descubre que los despliegues a producción usan el puerto 80 en lugar del 443 esperado: el debug revela que una variable http_port definida en vars: del play sobreescribe la de group_vars, un clásico conflicto de precedencia que cuesta horas diagnosticar sin conocer la jerarquía.',
+    quiz: [
+      {
+        question: '¿Qué fuente de variables tiene la mayor precedencia en Ansible, por encima de cualquier otra?',
+        options: [
+          'Variables definidas en roles (roles/myrole/vars/main.yml)',
+          'Variables de host en host_vars/',
+          'Extra vars pasadas con -e en la línea de comandos',
+          'Variables definidas con set_fact en una tarea',
+        ],
+        correctIndex: 2,
+        explanation: 'Las extra vars (-e) tienen la máxima precedencia en Ansible, por encima de todo: roles, set_fact, host_vars, group_vars, y cualquier otra fuente. Esto las hace útiles para overrides de emergencia pero peligrosas si se usan habitualmente.',
+      },
+      {
+        question: 'Cuando la misma variable está definida en group_vars/all.yml y en group_vars/servidores_web.yml, ¿qué valor usa un host del grupo servidores_web?',
+        options: [
+          'El de group_vars/all.yml porque "all" siempre tiene mayor precedencia',
+          'El de group_vars/servidores_web.yml porque los grupos específicos tienen mayor precedencia que "all"',
+          'Ansible lanza un error por ambigüedad',
+          'El primero que encuentra alfabéticamente',
+        ],
+        correctIndex: 1,
+        explanation: 'En la jerarquía de Ansible, los grupos específicos (hijos) tienen mayor precedencia que el grupo "all". Un host en "servidores_web" usará el valor de group_vars/servidores_web.yml, que sobreescribe el de group_vars/all.yml para ese grupo.',
+      },
+      {
+        question: '¿Cuál es la forma correcta de verificar qué valor tiene una variable específica en un host concreto, considerando todas las fuentes?',
+        options: [
+          'cat inventario/group_vars/servidores_web.yml',
+          'ansible -i inventario/ web1 -m debug -a "var=nombre_variable"',
+          'ansible-playbook sitio.yml --check --diff',
+          'grep -r nombre_variable inventario/',
+        ],
+        correctIndex: 1,
+        explanation: 'El módulo debug con var= es la forma definitiva: Ansible resuelve la variable aplicando toda la jerarquía de precedencia y muestra el valor final que usaría para ese host. cat o grep muestran solo lo que hay en un archivo, sin considerar sobreescrituras.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'Una variable tiene un valor incorrecto en producción pero correcto en staging; ambos usan el mismo playbook',
+        cause: 'Una variable está definida en múltiples fuentes con valores distintos. En producción, una fuente de mayor precedencia (como vars: en el play o un rol) sobreescribe el valor esperado de group_vars.',
+        fix: 'Ejecutar ansible -i inventario/ host_produccion -m debug -a "var=nombre_variable" para ver el valor final. Luego buscar en qué fuente se define con el valor incorrecto y eliminar esa definición o corregirla.',
+      },
+      {
+        error: 'ansible_user es diferente en distintos hosts del mismo grupo aunque está definido en group_vars',
+        cause: 'Algunos hosts tienen ansible_user definido inline en el inventario o en host_vars/, lo que tiene mayor precedencia que group_vars.',
+        fix: 'Buscar definiciones de ansible_user en el inventario INI/YAML inline y en los archivos host_vars/ de esos hosts. Eliminar las definiciones redundantes o asegurarse de que los valores sean consistentes.',
+      },
+      {
+        error: 'Se usa -e para forzar un valor pero el playbook sigue usando el valor anterior',
+        cause: 'El nombre de la variable en -e no coincide exactamente con el usado en el playbook (diferencia de mayúsculas, guiones vs guiones bajos).',
+        fix: 'Ansible es case-sensitive: http_port y HTTP_PORT son variables distintas. Verificar el nombre exacto con ansible -m debug -a "var=hostvars[inventory_hostname]" y usarlo idéntico en -e.',
+      },
+    ],
     objectives: [
       'Enumerar los 16 niveles de precedencia de variables de Ansible en orden',
       'Predecir qué valor ganará cuando la misma variable está en group_vars y host_vars',

@@ -127,7 +127,67 @@ servidores:
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar Nivel 0 — Conceptos básicos de automatización',
+      'Completar Nivel 1 — Inventarios y conexión SSH',
+      'Completar Nivel 2 — Módulos esenciales',
+      'Completar Nivel 3 — Variables y plantillas Jinja2',
+      'Completar Nivel 4 — Roles y estructura de proyectos',
+    ],
+    realWorldCase: 'Al escribir un playbook que lanza un script bash multilínea, un tab invisible en el YAML rompe el parseo y el deploy falla en producción. Conocer las reglas críticas de YAML evita horas de debugging en el momento más crítico.',
+    quiz: [
+      {
+        question: '¿Cuál es la diferencia entre el operador | y > en YAML multilínea?',
+        options: [
+          '| colapsa los saltos de línea en espacios; > los preserva exactamente',
+          '| preserva los saltos de línea exactamente; > colapsa los saltos en espacios',
+          'Son equivalentes; solo difieren en estilo',
+          '| se usa para strings; > se usa solo para comandos bash',
+        ],
+        correctIndex: 1,
+        explanation: '| (literal block scalar) preserva cada salto de línea tal cual. > (folded block scalar) convierte los saltos de línea en espacios, produciendo un párrafo continuo. Usá | para scripts y comandos, > para descripciones largas.',
+      },
+      {
+        question: '¿Qué hace el operador <<: en un diccionario YAML?',
+        options: [
+          'Agrega un comentario al bloque',
+          'Define un anchor nuevo con ese nombre',
+          'Fusiona todas las claves de un anchor en el diccionario actual (merge key)',
+          'Redirige la salida del bloque a otro archivo',
+        ],
+        correctIndex: 2,
+        explanation: '<<: es la "merge key" de YAML. Copia todas las claves del alias referenciado (*nombre) al diccionario actual. Si el diccionario define la misma clave, la sobreescribe. Es útil para heredar configuraciones base en inventarios YAML.',
+      },
+      {
+        question: '¿Por qué Ansible recomienda usar true/false en lugar de yes/no para booleanos?',
+        options: [
+          'Porque yes/no son inválidos en YAML 1.2 y Ansible usa YAML 1.2',
+          'Para mayor claridad y evitar ambigüedad, ya que YAML 1.1 acepta múltiples formas (yes, on, true) que pueden confundir',
+          'Porque yes/no solo funcionan en Windows y true/false son multiplataforma',
+          'No hay diferencia; Ansible acepta ambas formas de manera idéntica',
+        ],
+        correctIndex: 1,
+        explanation: 'YAML 1.1 acepta yes, no, on, off, true, false como booleanos. Esto genera confusión (¿"on" es el string "on" o el booleano true?). Ansible recomienda true/false para eliminar esa ambigüedad y hacer el código más legible y predecible.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'yaml.scanner.ScannerError: mapping values are not allowed here',
+        cause: 'Un caracter tab fue usado en lugar de espacios para la indentación. YAML solo acepta espacios.',
+        fix: 'Configurá tu editor para expandir tabs a espacios en archivos .yml. Ejecutá `cat -A archivo.yml | grep "^I"` para detectar tabs (se muestran como ^I).',
+      },
+      {
+        error: 'El valor numérico "2.0" se interpreta como el número 2, no como el string "2.0"',
+        cause: 'YAML infiere tipos automáticamente. Sin comillas, "2.0" se parsea como float.',
+        fix: 'Rodeá el valor con comillas dobles: version: "2.0". Siempre usá comillas cuando un valor que parece número debe tratarse como string (versiones, IDs, etc.).',
+      },
+      {
+        error: 'Los anchors definidos en un playbook no se expanden correctamente en las tasks',
+        cause: 'Ansible procesa las tareas antes del merge YAML. Los anchors y aliases funcionan en inventarios YAML pero no dentro de la sección tasks: de un playbook.',
+        fix: 'Usá anchors solo en inventarios YAML y archivos de variables. En playbooks, reutilizá configuración mediante variables, defaults de roles o import_tasks.',
+      },
+    ],
   },
   {
     levelId: 5,
@@ -244,7 +304,63 @@ servidores:
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar Módulo 1 del Nivel 5 — Sintaxis YAML completa en contexto Ansible',
+    ],
+    realWorldCase: 'Un playbook de deploy usa serial: 2 y max_fail_percentage: 30 para hacer rolling updates seguros: si más del 30% de los hosts falla, Ansible aborta antes de romper toda la flota. Sin conocer estos campos del play, un deploy defectuoso podría derribar todos los servidores simultáneamente.',
+    quiz: [
+      {
+        question: '¿Cuál es la diferencia entre failed_when y ignore_errors en una task?',
+        options: [
+          'Son equivalentes; ambos evitan que el playbook falle',
+          'failed_when define una condición personalizada para considerar la task fallida; ignore_errors hace que Ansible continúe aunque la task falle',
+          'failed_when solo funciona con el módulo command; ignore_errors funciona con cualquier módulo',
+          'ignore_errors es deprecated; se debe usar siempre failed_when',
+        ],
+        correctIndex: 1,
+        explanation: 'failed_when te permite redefinir qué significa "fallo" (ej: `failed_when: result.rc > 1`). ignore_errors simplemente ignora cualquier fallo y continúa. Son complementarios: failed_when controla cuándo falla; ignore_errors controla qué pasa cuando falla.',
+      },
+      {
+        question: '¿Qué campo de un play controla que se procesen los hosts de a 2 en un rolling update?',
+        options: [
+          'max_fail_percentage: 2',
+          'strategy: 2',
+          'serial: 2',
+          'batch_size: 2',
+        ],
+        correctIndex: 2,
+        explanation: 'serial: 2 hace que Ansible procese el play en lotes de 2 hosts. Completa todas las tasks en esos 2 hosts antes de pasar al siguiente lote. Es el mecanismo nativo de rolling update en Ansible.',
+      },
+      {
+        question: '¿Qué combinación de campos permite reintentar una task hasta que tenga éxito?',
+        options: [
+          'retry: true y max_retries: 5',
+          'retries: 5, delay: 10 y until: <condición>',
+          'loop_control: { retries: 5 } y when: not result.failed',
+          'failed_when: false y retries: 5',
+        ],
+        correctIndex: 1,
+        explanation: 'La combinación retries + delay + until es el patrón correcto. `retries` define cuántos intentos, `delay` los segundos entre intentos, y `until` la condición que debe cumplirse para considerar la task exitosa. Los tres campos son obligatorios para que el retry funcione correctamente.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'La task con register no tiene el campo rc disponible',
+        cause: 'El módulo usado no devuelve rc. Solo los módulos que ejecutan comandos del sistema (command, shell, raw) incluyen rc en su resultado.',
+        fix: 'Verificá la documentación del módulo para saber qué campos devuelve. Usá `- ansible.builtin.debug: var=resultado` justo después de la task con register para inspeccionar la estructura completa del resultado.',
+      },
+      {
+        error: 'changed_when: false hace que los handlers no se ejecuten',
+        cause: 'Los handlers solo se disparan cuando una task reporta changed: true. Si forzás changed_when: false, la task nunca reporta cambios aunque el notify esté definido.',
+        fix: 'Usá changed_when: false solo en tareas de verificación o lectura que nunca deben considerarse como cambios. No lo uses en tareas que necesiten disparar handlers.',
+      },
+      {
+        error: 'El playbook falla con "Timeout waiting for privilege escalation prompt"',
+        cause: 'become: true está configurado pero el usuario remoto necesita contraseña para sudo y no se proveyó.',
+        fix: 'Ejecutá el playbook con --ask-become-pass para que Ansible pida la contraseña de sudo. En producción, configurá el usuario en sudoers con NOPASSWD o usá ansible_become_password en vault.',
+      },
+    ],
   },
   {
     levelId: 5,
@@ -364,7 +480,63 @@ handlers:
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar Módulo 2 del Nivel 5 — Tasks y Play: Anatomía completa',
+    ],
+    realWorldCase: 'Un playbook instala nginx, copia la configuración y reinicia el servicio en cada ejecución, aunque no haya cambios. Con handlers, el reinicio solo ocurre si la configuración realmente cambió, evitando interrupciones innecesarias del servicio en producción.',
+    quiz: [
+      {
+        question: '¿Cuándo se ejecutan los handlers en un playbook de Ansible?',
+        options: [
+          'Inmediatamente después de la tarea que los notifica',
+          'Al final del play, después de que todas las tareas completan',
+          'Solo si el playbook se ejecuta con --handlers',
+          'Una vez por host, sin importar cuántas veces fueron notificados',
+        ],
+        correctIndex: 1,
+        explanation: 'Los handlers se ejecutan al final del play, no inmediatamente cuando son notificados. Si un handler es notificado múltiples veces (por distintas tasks), se ejecuta una sola vez. Esto evita reinicios innecesarios cuando varios cambios disparan el mismo handler.',
+      },
+      {
+        question: '¿Para qué sirve `meta: flush_handlers`?',
+        options: [
+          'Para eliminar todos los handlers definidos en el play',
+          'Para ejecutar inmediatamente todos los handlers pendientes en ese punto del playbook',
+          'Para listar todos los handlers que fueron notificados',
+          'Para forzar que los handlers se ejecuten incluso si no fueron notificados',
+        ],
+        correctIndex: 1,
+        explanation: '`meta: flush_handlers` fuerza la ejecución de todos los handlers pendientes en el punto donde se inserta, sin esperar al final del play. Es útil cuando necesitás que un servicio esté reiniciado antes de ejecutar las tareas siguientes (ej: reiniciar nginx antes de verificar que responde).',
+      },
+      {
+        question: '¿Cuál es la ventaja de usar `listen` en un handler en lugar de notificarlo directamente por nombre?',
+        options: [
+          'Los handlers con listen se ejecutan más rápido',
+          'Permite que múltiples handlers respondan a un mismo evento, desacoplando el nombre del handler del evento que lo dispara',
+          'listen es obligatorio en Ansible 2.9+; notify por nombre está deprecated',
+          'Con listen se pueden pasar argumentos al handler',
+        ],
+        correctIndex: 1,
+        explanation: 'Con `listen`, un handler puede suscribirse a un "topic" en lugar de requerir que las tasks conozcan su nombre exacto. Múltiples handlers pueden escuchar el mismo topic, y una task notifica el topic sin saber qué handlers existen. Esto desacopla los handlers de las tasks que los disparan.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'Handler "restart nginx" was not found',
+        cause: 'El nombre en notify no coincide exactamente (case-sensitive) con el name: del handler. Un espacio de más o diferencia en mayúsculas es suficiente para que no se encuentre.',
+        fix: 'Verificá que el string en notify: sea idéntico carácter por carácter al name: del handler. Ansible es case-sensitive. Considera usar listen: con un topic en minúsculas para evitar este problema.',
+      },
+      {
+        error: 'El handler se ejecuta aunque la task no haya cambiado nada',
+        cause: 'La task que tiene el notify reporta changed: true en cada ejecución aunque no haya modificado nada. Esto ocurre frecuentemente con los módulos command y shell.',
+        fix: 'Agregá changed_when a la task para definir con precisión cuándo debe considerarse un cambio. Ej: `changed_when: result.stdout != ""`. Así el handler solo se dispara cuando realmente hubo una modificación.',
+      },
+      {
+        error: 'Los handlers no se ejecutan cuando el playbook falla a mitad',
+        cause: 'Si el play termina con un error no manejado, Ansible aborta antes de llegar a la sección de handlers. Los handlers pendientes se pierden.',
+        fix: 'Usá `meta: flush_handlers` en puntos críticos del play para ejecutar los handlers antes de que puedan perderse. Para garantizar la ejecución ante fallos, considerá combinar con blocks y rescue.',
+      },
+    ],
   },
   {
     levelId: 5,
@@ -440,7 +612,63 @@ ansible-playbook sitio.yml --tags never  # Solo corre las marcadas con 'never'</
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar Módulo 3 del Nivel 5 — Handlers y Notify',
+    ],
+    realWorldCase: 'Un equipo ejecuta un playbook de deploy largo cada semana. Con tags, pueden correr solo --tags configuracion para aplicar cambios de configuración sin re-instalar paquetes, reduciendo el tiempo de ejecución de 20 minutos a 2 minutos.',
+    quiz: [
+      {
+        question: '¿Qué hace el tag especial `always` cuando se asigna a una tarea?',
+        options: [
+          'La tarea siempre se ejecuta, incluso cuando se usa --skip-tags con ese tag',
+          'La tarea se ejecuta siempre, sin importar qué tags se pasen con --tags o --skip-tags',
+          'La tarea se marca como prioritaria y se ejecuta antes que las demás',
+          'La tarea se ejecuta solo cuando no se especifica ningún --tags',
+        ],
+        correctIndex: 1,
+        explanation: 'Una tarea marcada con el tag `always` se ejecuta siempre, independientemente de qué otros tags se filtren con --tags. La única excepción es si se usa explícitamente `--skip-tags always`. Es útil para tareas de limpieza o logging que deben correr en cualquier contexto.',
+      },
+      {
+        question: '¿Cuál es el comando para listar todos los tags disponibles en un playbook sin ejecutarlo?',
+        options: [
+          'ansible-playbook sitio.yml --show-tags',
+          'ansible-playbook sitio.yml --list-tags',
+          'ansible-playbook sitio.yml --dry-run --tags',
+          'ansible-tags sitio.yml',
+        ],
+        correctIndex: 1,
+        explanation: '`ansible-playbook sitio.yml --list-tags` muestra todos los tags definidos en el playbook y en qué plays/tasks están, sin ejecutar nada. Es muy útil para descubrir qué tags existen antes de usar --tags en un playbook que no conocés.',
+      },
+      {
+        question: '¿Qué hace el tag especial `never`?',
+        options: [
+          'La tarea nunca se ejecuta bajo ninguna circunstancia',
+          'La tarea se salta siempre a menos que se llame explícitamente con --tags never',
+          'La tarea falla silenciosamente sin reportar error',
+          'La tarea se ejecuta solo si todas las demás fallan',
+        ],
+        correctIndex: 1,
+        explanation: 'Una tarea con tag `never` se omite en ejecuciones normales y también cuando se usan --tags con otros nombres. Solo se ejecuta cuando se pide explícitamente con `--tags never`. Es ideal para tareas de debug, mantenimiento, o acciones destructivas que no deben correr accidentalmente.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'Los tags definidos en un include_tasks no aparecen en --list-tags',
+        cause: 'include_tasks es dinámico: el archivo incluido se carga en tiempo de ejecución, no en tiempo de carga. Por lo tanto, --list-tags no puede descubrir sus tags antes de ejecutar.',
+        fix: 'Cambiá include_tasks por import_tasks para includes cuyo contenido es estático. Los imports son procesados en tiempo de carga y sus tags sí aparecen en --list-tags. Solo usá include_tasks cuando necesitás dinamismo (variables en el nombre del archivo o loops).',
+      },
+      {
+        error: 'Al usar --tags con un tag, se ejecutan tareas de plays que no deberían correr',
+        cause: 'Si un play completo tiene un tag asignado, ese tag aplica a todas sus tareas. Si una tarea tiene el mismo tag que el play, se ejecuta aunque no sea lo que esperabas filtrar.',
+        fix: 'Revisá los tags asignados al nivel de play (tags: en el play mismo). Asegurate de que los tags de play sean suficientemente específicos (ej: produccion-web) y no colisionen con tags de tareas individuales.',
+      },
+      {
+        error: 'El playbook con --tags solo ejecuta 1 tarea cuando debería ejecutar 5',
+        cause: 'Solo las tareas que tienen exactamente ese tag asignado se ejecutan. Las tareas sin tag explícito no se incluyen en la selección.',
+        fix: 'Para ejecutar varias tareas relacionadas, asignalas todas al mismo tag, o usá varios tags en el filtro: `--tags "instalacion,configuracion"`. También podés agrupar tareas en un block y asignar el tag al block.',
+      },
+    ],
   },
   {
     levelId: 5,
@@ -558,7 +786,63 @@ ansible-playbook sitio.yml --tags never  # Solo corre las marcadas con 'never'</
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar Módulo 4 del Nivel 5 — Tags: Ejecución selectiva',
+    ],
+    realWorldCase: 'Un playbook necesita crear 50 usuarios con sus directorios home y claves SSH. Sin loops, son 150 tareas repetidas. Con loop sobre una lista de diccionarios, son 3 tareas genéricas que se aplican a todos los usuarios, haciendo el playbook legible y mantenible.',
+    quiz: [
+      {
+        question: '¿Cómo se itera sobre un diccionario (mapping YAML) usando loop?',
+        options: [
+          'loop: "{{ mi_dict }}" y se accede con item.key e item.value directamente',
+          'loop: "{{ mi_dict | dict2items }}" y se accede con item.key e item.value',
+          'with_dict: mi_dict (la única forma válida de iterar diccionarios)',
+          'loop: "{{ mi_dict.items() }}" usando la sintaxis de Python',
+        ],
+        correctIndex: 1,
+        explanation: 'El filtro Jinja2 `dict2items` convierte un diccionario en una lista de objetos {key, value} que loop puede iterar. Dentro del loop se accede con `item.key` e `item.value`. Es la forma moderna y recomendada desde Ansible 2.6 (reemplaza el antiguo with_dict).',
+      },
+      {
+        question: '¿Para qué sirve `loop_control.label`?',
+        options: [
+          'Para asignar un nombre único a cada iteración del loop',
+          'Para controlar cuántas iteraciones se ejecutan en paralelo',
+          'Para personalizar el texto que aparece en la salida de Ansible en lugar de mostrar el item completo',
+          'Para pausar el loop cuando el label coincide con una condición',
+        ],
+        correctIndex: 2,
+        explanation: 'Cuando loop itera sobre diccionarios complejos, la salida muestra el objeto completo en cada tarea, haciendo la salida ilegible. `loop_control.label` permite definir qué mostrar, por ejemplo `label: "{{ item.name }}"` en lugar de todo el diccionario.',
+      },
+      {
+        question: '¿Cuál es la variable especial que contiene el índice numérico de la iteración actual en un loop?',
+        options: [
+          'item.index',
+          'loop.index',
+          'La variable definida en loop_control.index_var',
+          'ansible_loop_var',
+        ],
+        correctIndex: 2,
+        explanation: 'Para acceder al índice de la iteración, debés declarar `loop_control: { index_var: idx }` y luego usar `{{ idx }}` en la tarea. No existe una variable automática de índice como en otros lenguajes; hay que habilitarla explícitamente con index_var.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: '"loop" no está definido / "with_items" es deprecated',
+        cause: 'El playbook usa `with_items` (sintaxis antigua de Ansible < 2.5) o intenta usar un `loop` vacío.',
+        fix: 'Migrá de `with_items` a `loop`. Son equivalentes para listas simples: `loop: [a, b, c]`. Para loops anidados que usaban `with_nested`, usá el filtro `product` de Jinja2: `loop: "{{ lista1 | product(lista2) | list }}"`. Asegurate de que la variable del loop no sea null o vacía.',
+      },
+      {
+        error: 'El loop sobre `include_tasks` falla con "loop variables are not supported in include_tasks"',
+        cause: 'Se intentó usar loop con import_tasks en lugar de include_tasks. Los imports son estáticos y no soportan loops.',
+        fix: 'Reemplazá import_tasks por include_tasks cuando necesitás usar loop. Los includes son dinámicos y sí soportan iteración. Si también necesitás que los tags del archivo incluido sean visibles, estructurá el contenido en un role en su lugar.',
+      },
+      {
+        error: 'Conflicto de variable "item" cuando se anidan loops en roles',
+        cause: 'Ansible usa `item` como nombre de variable de loop por defecto. Si un role interno también usa loop, ambos comparten la misma variable y se pisan.',
+        fix: 'Usá `loop_control: { loop_var: mi_variable }` para renombrar la variable del loop en el contexto exterior o interior. Define nombres diferentes en cada nivel de anidamiento para evitar colisiones.',
+      },
+    ],
   },
   {
     levelId: 5,
@@ -665,7 +949,63 @@ ansible-playbook sitio.yml --tags never  # Solo corre las marcadas con 'never'</
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar Módulo 5 del Nivel 5 — Loops: Iteración de tareas',
+    ],
+    realWorldCase: 'Un playbook de deploy falla a mitad cuando la migración de base de datos encuentra un error. Con block/rescue, Ansible ejecuta automáticamente el rollback al código anterior y registra el fallo, en lugar de dejar el servidor en un estado inconsistente.',
+    quiz: [
+      {
+        question: '¿Cuándo se ejecuta la sección `rescue` de un block?',
+        options: [
+          'Siempre, al final de cada block',
+          'Solo si alguna tarea dentro del block falla',
+          'Solo si se especifica --rescue en la línea de comandos',
+          'Cuando se usa `meta: trigger_rescue` dentro del block',
+        ],
+        correctIndex: 1,
+        explanation: 'La sección `rescue` se ejecuta solo cuando una tarea dentro del `block` produce un error. Si todas las tareas del block tienen éxito, rescue se saltea completamente. Es el equivalente al bloque `catch` en lenguajes de programación.',
+      },
+      {
+        question: '¿En qué se diferencia `always` de `rescue` en un block?',
+        options: [
+          'always se ejecuta si hubo éxito; rescue se ejecuta si hubo error',
+          'always se ejecuta siempre (éxito o error); rescue se ejecuta solo si hubo error en el block',
+          'Son equivalentes pero always tiene mayor prioridad',
+          'always es para limpieza; rescue solo para notificaciones',
+        ],
+        correctIndex: 1,
+        explanation: '`always` se ejecuta incondicionalmente, tanto si el block tuvo éxito como si falló. `rescue` se ejecuta solo en caso de error. Un block puede tener ambas secciones: rescue maneja el error y always garantiza la limpieza en cualquier caso (equivale a try-catch-finally).',
+      },
+      {
+        question: '¿Qué propiedad aplicada a un block afecta a TODAS las tareas dentro de él?',
+        options: [
+          'Solo name: se propaga a las tareas hijas',
+          'when:, become:, tags: y vars: aplicados al block se heredan por todas sus tareas',
+          'Solo become: se propaga; when: debe repetirse en cada tarea',
+          'Las propiedades no se propagan; cada tarea del block debe definir las suyas',
+        ],
+        correctIndex: 1,
+        explanation: 'Un block actúa como un "apply a todas": when:, become:, become_user:, tags:, vars:, ignore_errors:, no_log: y environment: definidos en el block se aplican a cada tarea dentro de él. Esto elimina la repetición y es una de las principales ventajas de usar blocks.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'Las tareas en rescue se ejecutan aunque el block haya tenido éxito',
+        cause: 'Esto no debería ocurrir con el comportamiento correcto. Si sucede, probablemente hay un error de indentación y las tareas de rescue están en el nivel incorrecto del YAML.',
+        fix: 'Verificá que block:, rescue: y always: estén al mismo nivel de indentación. Las tareas dentro de cada sección deben tener 2 espacios más que su sección. Usá `ansible-playbook --syntax-check` para detectar errores estructurales.',
+      },
+      {
+        error: 'El play continúa como exitoso después de rescue, aunque el deploy falló',
+        cause: 'Cuando rescue se ejecuta y completa sin error, Ansible considera el play como exitoso, aunque haya habido un fallo en el block original.',
+        fix: 'Si querés que el play falle después del rescue (para que el CI/CD lo detecte), agregá una tarea en rescue que falle explícitamente: `ansible.builtin.fail: msg: "Deploy fallido, rollback ejecutado"` al final del bloque rescue.',
+      },
+      {
+        error: 'La variable `ansible_failed_task` no está disponible en always',
+        cause: '`ansible_failed_task` solo está disponible en el contexto de rescue. En always, si hubo éxito, esa variable no existe y acceder a ella causa un error.',
+        fix: 'Usá el filtro default para manejar el caso en que la variable no exista: `{{ ansible_failed_task.name | default("ninguna") }}`. Así el template funciona tanto en el camino de éxito como en el de error.',
+      },
+    ],
   },
   {
     levelId: 5,
@@ -775,6 +1115,62 @@ ansible-playbook sitio.yml --tags never  # Solo corre las marcadas con 'never'</
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar Módulo 6 del Nivel 5 — Blocks, Rescue y Always',
+    ],
+    realWorldCase: 'Un equipo mantiene playbooks de 800 líneas que son imposibles de entender. Al refactorizar con import_tasks para tareas estáticas e include_tasks para configuraciones por ambiente (configure-prod.yml, configure-staging.yml), cada archivo tiene menos de 50 líneas y el playbook principal es un índice legible.',
+    quiz: [
+      {
+        question: '¿Cuál es la diferencia fundamental entre import_tasks e include_tasks?',
+        options: [
+          'import_tasks carga archivos locales; include_tasks puede cargar archivos remotos',
+          'import_tasks es procesado en tiempo de carga (estático); include_tasks es procesado en tiempo de ejecución (dinámico)',
+          'import_tasks soporta loops; include_tasks no',
+          'Son equivalentes en Ansible 2.8+; la diferencia existía solo en versiones anteriores',
+        ],
+        correctIndex: 1,
+        explanation: 'import_tasks es estático: el contenido del archivo se incrusta en el playbook antes de ejecutarlo. include_tasks es dinámico: el archivo se carga y procesa en el momento en que se llega a esa línea durante la ejecución. Esto tiene consecuencias importantes en el comportamiento de tags, loops y condicionales.',
+      },
+      {
+        question: '¿Por qué no se puede usar una variable en el nombre del archivo con import_tasks?',
+        options: [
+          'Es una limitación de seguridad: solo se permiten rutas hardcodeadas',
+          'Porque import_tasks se procesa antes de la ejecución, cuando las variables de runtime aún no están disponibles',
+          'Las variables sí funcionan con import_tasks siempre que estén en el inventario',
+          'Solo funciona con variables de entorno del sistema, no con variables de Ansible',
+        ],
+        correctIndex: 1,
+        explanation: 'import_tasks procesa el archivo en tiempo de carga, antes de cualquier ejecución. En ese momento, variables como `{{ env }}` (que puede valer "prod" o "staging") aún no están resueltas. Por eso se necesita include_tasks para rutas dinámicas: se evalúa en tiempo de ejecución cuando las variables ya tienen valor.',
+      },
+      {
+        question: '¿Qué ocurre cuando se aplica `when:` a un import_tasks versus a un include_tasks?',
+        options: [
+          'El comportamiento es idéntico en ambos casos',
+          'En import_tasks, when: se aplica a cada tarea individual dentro del archivo; en include_tasks, when: controla si el include completo se ejecuta',
+          'En import_tasks, when: controla si el include se ejecuta; en include_tasks, se replica en cada tarea',
+          'when: no funciona con include_tasks; debe definirse en cada tarea del archivo incluido',
+        ],
+        correctIndex: 1,
+        explanation: 'Con import_tasks, Ansible agrega el when: a cada tarea del archivo importado individualmente (porque el contenido se incrusta). Con include_tasks, el when: determina si el include completo se ejecuta o se salta. La diferencia importa cuando las variables usadas en when: cambian durante la ejecución del play.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'include_tasks con loop falla con "You cannot use include_tasks with loop in this context"',
+        cause: 'Se intentó usar include_tasks con loop dentro de un block o de un contexto que no soporta includes dinámicos con iteración.',
+        fix: 'Asegurate de que el include_tasks con loop esté directamente en la lista de tasks del play, no anidado dentro de un block en algunos contextos. Si el error persiste, reestructurá el loop para que itere dentro del archivo incluido en lugar de sobre el include.',
+      },
+      {
+        error: 'Los tags del archivo importado con import_tasks no aparecen en --list-tags',
+        cause: 'En realidad sí deberían aparecer. Si no aparecen, probablemente se está usando include_tasks en lugar de import_tasks.',
+        fix: 'Verificá que el playbook use import_tasks y no include_tasks. Solo los imports son estáticos y sus tags son visibles en tiempo de carga. Comprobá también que los archivos importados efectivamente tengan tags: definidos en sus tareas.',
+      },
+      {
+        error: 'import_playbook dentro de tasks: falla con "import_playbook is not a valid attribute"',
+        cause: 'import_playbook debe usarse a nivel de playbook (en la lista raíz de plays), no dentro de la sección tasks: de un play.',
+        fix: 'Mové import_playbook al nivel raíz del playbook, junto con los otros plays (al mismo nivel que `- name: Mi play`). Para incluir tareas dentro de un play, usá import_tasks o include_tasks en cambio.',
+      },
+    ],
   }
 ];

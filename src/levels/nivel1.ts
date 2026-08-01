@@ -910,7 +910,65 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=60s
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Haber completado el Módulo 1 (Historia y contexto de Ansible)',
+      'Haber completado el Módulo 2 (Arquitectura agentless)',
+      'Entender la diferencia entre Control Node y Managed Node',
+    ],
+    quiz: [
+      {
+        question: '¿Qué significa que Ansible sea "agentless"?',
+        options: [
+          'Que Ansible no requiere Python en el Control Node',
+          'Que no hay ningún software adicional corriendo permanentemente en los Managed Nodes',
+          'Que Ansible no usa agentes de monitoreo',
+          'Que no se necesita un archivo de inventario',
+        ],
+        correctIndex: 1,
+        explanation: 'Agentless significa que los Managed Nodes no requieren ningún daemon o agente instalado. Ansible se conecta via SSH, copia un módulo Python temporalmente, lo ejecuta, y borra el archivo. No queda ningún proceso corriendo.',
+      },
+      {
+        question: '¿Cuál es la diferencia entre un enfoque imperativo y uno declarativo en Ansible?',
+        options: [
+          'El enfoque imperativo es más rápido que el declarativo',
+          'El imperativo describe los pasos a seguir; el declarativo describe el estado final deseado',
+          'El declarativo requiere más código que el imperativo',
+          'No hay diferencia práctica entre ambos enfoques',
+        ],
+        correctIndex: 1,
+        explanation: 'Ansible es declarativo: describís "quiero que nginx esté instalado y corriendo" — no "ejecutá apt install, luego systemctl start". Ansible determina qué pasos ejecutar según el estado actual del sistema para alcanzar el estado deseado.',
+      },
+      {
+        question: '¿Cuándo el módulo shell o command NO es idempotente?',
+        options: [
+          'Nunca, todos los módulos de Ansible son idempotentes por diseño',
+          'Solo cuando se usa con become: true',
+          'Cuando no se especifica creates, removes, o changed_when para controlar cuándo se considera que "cambió"',
+          'Solo en la primera ejecución del playbook',
+        ],
+        correctIndex: 2,
+        explanation: 'Los módulos shell y command ejecutan el comando cada vez, sin verificar si el resultado ya existe. Para hacerlos idempotentes debés usar: creates (si el archivo ya existe, no ejecuta), removes (si el archivo no existe, no ejecuta), o changed_when: false (nunca reporta cambio).',
+      },
+    ],
+    realWorldCase: 'Un equipo de DevOps aplica el mismo playbook de hardening (deshabilitar servicios, configurar firewall, instalar parches) a 500 servidores cada lunes a las 3 AM. Gracias a la idempotencia, si el servidor ya está en el estado correcto no ocurre ningún cambio — y gracias al modelo push, el equipo dispara la ejecución desde un único lugar sin depender de que los agentes en cada servidor hagan pull.',
+    troubleshooting: [
+      {
+        error: 'El playbook muestra "changed" en cada ejecución aunque nada debería cambiar',
+        cause: 'Alguna tarea usa el módulo shell o command sin changed_when, o usa un módulo que no es idempotente por naturaleza.',
+        fix: 'Revisá cada tarea que reporta changed. Si usa shell/command, agregá changed_when: false si el comando es de consulta, o creates/removes si crea o elimina un archivo.',
+      },
+      {
+        error: 'ansible-playbook no encuentra el módulo — "module not found"',
+        cause: 'Se usa el nombre corto del módulo (ping) en vez del FQCN (ansible.builtin.ping) y la colección no está instalada o en el search path.',
+        fix: 'Usá el nombre completo del módulo (ansible.builtin.ping, ansible.builtin.apt). Instalá colecciones externas con: ansible-galaxy collection install nombre.coleccion',
+      },
+      {
+        error: 'WARNING: Consider using the "become" option instead of running ssh as root',
+        cause: 'El usuario remoto es root directamente en lugar de usar un usuario normal con sudo.',
+        fix: 'Cambiá el remote_user a un usuario sin privilegios y agregá become: true a las tareas que lo requieren. Evitá conectarte como root directamente.',
+      },
+    ],
   },
   {
     levelId: 1,
@@ -1135,6 +1193,47 @@ ansible all -i inventory/hosts.ini -m ping -k    # -k pide contraseña SSH</code
         `
       }
     ],
+    prerequisites: [
+      'Haber completado el Módulo 3 (Características clave de Ansible)',
+      'Tener Python 3.9 o superior instalado en el sistema',
+      'Acceso a una terminal Linux, macOS, o WSL en Windows',
+    ],
+    quiz: [
+      {
+        question: '¿Cuál es el método de instalación recomendado para Ansible en Linux?',
+        options: [
+          'sudo apt install ansible (gestor de paquetes del sistema)',
+          'pip3 install --user ansible (pip en el entorno de usuario)',
+          'Descargar el binario directamente desde ansible.com',
+          'Docker pull ansible/ansible',
+        ],
+        correctIndex: 1,
+        explanation: 'pip3 install --user ansible es el método recomendado porque siempre instala la versión más reciente, no requiere privilegios de root, no interfiere con los paquetes del sistema, y el entorno virtual es una alternativa aún mejor para proyectos aislados. Los paquetes de la distro suelen estar desactualizados.',
+      },
+      {
+        question: '¿Qué verifica el comando ansible --version además de la versión de Ansible?',
+        options: [
+          'Solo la versión de Ansible y nada más',
+          'La versión de Ansible, el archivo de configuración activo, la versión de Python y de Jinja2',
+          'Los hosts disponibles en el inventario por defecto',
+          'La conectividad SSH con los Managed Nodes',
+        ],
+        correctIndex: 1,
+        explanation: 'ansible --version muestra: la versión de ansible-core, el archivo ansible.cfg que está usando (o None si no hay ninguno), la ruta del módulo Python, las rutas de colecciones, la versión de Python usada, la versión de Jinja2, y si libyaml está habilitado (para parsing más rápido).',
+      },
+      {
+        question: '¿Qué sucede cuando ejecutás ansible localhost -m ping?',
+        options: [
+          'Ansible hace un ping ICMP al localhost',
+          'Ansible se conecta via SSH al localhost y ejecuta el módulo ping de Python',
+          'Ansible verifica que el archivo de inventario tenga localhost definido',
+          'El comando falla porque "localhost" no es un host válido sin un inventario',
+        ],
+        correctIndex: 1,
+        explanation: 'ansible localhost -m ping se conecta via SSH (o una conexión local) al localhost, copia el módulo AnsiballZ_ping.py, lo ejecuta y espera la respuesta {"ping": "pong"}. Es la prueba mínima de que Ansible puede ejecutar módulos Python. "localhost" es un host implícito en Ansible sin necesitar inventario explícito.',
+      },
+    ],
+    realWorldCase: 'Un nuevo desarrollador se incorpora a un equipo de infraestructura. En vez de seguir un documento de instalación de 20 pasos, ejecuta tres comandos: pip3 install --user ansible, crea un ansible.cfg apuntando al inventario de staging, y corre ansible all -m ping. En menos de 10 minutos tiene acceso completo a los 200 servidores del entorno de staging sin que nadie de operaciones tenga que intervenir.',
     troubleshooting: [
       {
         error: 'bash: ansible: command not found',
@@ -1452,6 +1551,47 @@ ansible all -m ping --limit web1.ejemplo.com</code></pre>
         `
       }
     ],
+    prerequisites: [
+      'Haber completado el Módulo 4 (Instalación de Ansible)',
+      'Tener Ansible instalado y ansible --version funcionando',
+      'Tener al menos un host accesible via SSH o el localhost disponible',
+    ],
+    quiz: [
+      {
+        question: '¿Qué verifica realmente el módulo ping de Ansible?',
+        options: [
+          'Que el host responde a paquetes ICMP (ping de red)',
+          'Que la conexión SSH funciona, Python está disponible, y Ansible puede ejecutar módulos en el host',
+          'Que el inventario tiene la dirección IP correcta del host',
+          'Que el host tiene conectividad a internet',
+        ],
+        correctIndex: 1,
+        explanation: 'El módulo ping de Ansible NO es un ping ICMP. Verifica la cadena completa: conexión SSH → copia de módulo Python a /tmp → ejecución de Python en el host remoto → respuesta JSON. Si ping responde con SUCCESS, tenés todo lo necesario para gestionar ese host con Ansible.',
+      },
+      {
+        question: '¿Qué significa el flag -vvv en ansible all -m ping -vvv?',
+        options: [
+          'Ejecutar el ping tres veces para verificar consistencia',
+          'Validar el vocabulario, versión y variables del inventario',
+          'Activar el modo de máxima verbosidad, mostrando cada conexión SSH, archivo copiado y comando ejecutado',
+          'Ejecutar contra tres grupos de hosts simultáneamente',
+        ],
+        correctIndex: 2,
+        explanation: 'Con -vvv Ansible muestra en detalle: qué conexión SSH estableció, qué usuario usó, qué archivo Python copió a /tmp, y qué comando ejecutó en el host remoto. Es el nivel de verbose más útil para diagnosticar problemas de conectividad o ejecución.',
+      },
+      {
+        question: '¿Cuál es la diferencia entre "ansible all" y "ansible-playbook sitio.yml"?',
+        options: [
+          'No hay diferencia — ambos ejecutan las mismas tareas',
+          '"ansible all" solo funciona con el módulo ping; ansible-playbook funciona con cualquier módulo',
+          '"ansible all" ejecuta una sola tarea ad-hoc inmediatamente; ansible-playbook ejecuta múltiples tareas definidas en un archivo YAML',
+          '"ansible all" requiere privilegios de root; ansible-playbook no',
+        ],
+        correctIndex: 2,
+        explanation: '"ansible" es para comandos ad-hoc: una sola tarea, resultado inmediato, ideal para diagnóstico. "ansible-playbook" ejecuta un archivo .yml con múltiples tareas en secuencia, es la herramienta para automatización repetible y versionada en Git.',
+      },
+    ],
+    realWorldCase: 'Un ingeniero de operaciones recibe una alerta: un servidor de producción no está respondiendo correctamente. En vez de conectarse manualmente por SSH, ejecuta ansible web-prod -m command -a "systemctl status nginx" -b para ver el estado del servicio en todos los servidores web del grupo al mismo tiempo. En segundos tiene el estado de 50 servidores en una pantalla, identifica cuáles tienen nginx caído, y ejecuta ansible web-prod -m service -a "name=nginx state=restarted" -b para reiniciarlo solo en esos hosts.',
     troubleshooting: [
       {
         error: 'UNREACHABLE! Failed to connect to the host via ssh: Connection refused',

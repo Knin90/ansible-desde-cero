@@ -13,6 +13,10 @@ export const nivel2Modules: ModuleContent[] = [
       'Explicar qué hace el Strategy Plugin y cómo afecta la ejecución paralela',
       'Usar ansible-playbook --syntax-check y ansible-inventory para depurar etapas tempranas',
     ],
+    prerequisites: [
+      'Nivel 0 completo: qué es Ansible, instalación y primer playbook',
+      'Nivel 1 completo: playbooks, módulos, variables, handlers y roles',
+    ],
     steps: [
       {
         title: 'Por qué importa conocer el flujo interno',
@@ -118,7 +122,60 @@ web2.ejemplo.com    : ok=2  changed=1  unreachable=0  failed=0</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    quiz: [
+      {
+        question: '¿En qué paso del flujo interno falla un playbook si hay un error de indentación en el YAML?',
+        options: [
+          'Paso 1 — CLI (carga de ansible.cfg)',
+          'Paso 2 — Parser YAML',
+          'Paso 3 — Inventory Engine',
+          'Paso 7 — Task Queue',
+        ],
+        correctIndex: 1,
+        explanation: 'El Parser YAML (Paso 2) valida la sintaxis del playbook antes de cualquier ejecución. Un error de indentación o una coma faltante se detecta aquí con un mensaje "ERROR! Syntax Error".',
+      },
+      {
+        question: '¿Qué componente decide si la tarea 1 se ejecuta en web1 y web2 antes de pasar a la tarea 2?',
+        options: [
+          'El SSH Plugin (Paso 8)',
+          'El Action Plugin (Paso 9)',
+          'El Strategy Plugin (Paso 6)',
+          'El Callback Plugin (Paso 12)',
+        ],
+        correctIndex: 2,
+        explanation: 'El Strategy Plugin (Paso 6) controla el orden y paralelismo de ejecución. La estrategia "linear" garantiza que todos los hosts completen la tarea N antes de avanzar a la tarea N+1.',
+      },
+      {
+        question: '¿Por qué el módulo "template" renderiza el archivo Jinja2 localmente (Paso 9) y no en el host remoto?',
+        options: [
+          'Porque los hosts remotos no tienen Python instalado',
+          'Porque Jinja2 no está disponible en los hosts remotos',
+          'Porque las variables del contexto existen en el nodo de control, donde el Action Plugin puede accederlas directamente',
+          'Porque es más rápido transferir el resultado ya renderizado',
+        ],
+        correctIndex: 2,
+        explanation: 'El Action Plugin de "template" corre en el nodo de control donde viven todas las variables (hostvars, group_vars, facts). Renderizar ahí es correcto por diseño; la alternativa requeriría serializar y transferir todo el contexto de variables al host remoto.',
+      },
+    ],
+    realWorldCase: 'Un ingeniero DevOps nota que su playbook falla con "UNREACHABLE" en el Paso 8 (SSH) pero no en el Paso 2 (Parser YAML). Conocer el flujo interno le permite diagnosticar inmediatamente que el problema es de conectividad SSH, no de sintaxis, y apunta directo a revisar claves, puertos y firewall en lugar de revisar el YAML.',
+    troubleshooting: [
+      {
+        error: 'ERROR! Syntax Error while loading YAML.',
+        cause: 'El playbook tiene un error de indentación, un tab en lugar de espacios, o comillas sin cerrar. El Parser YAML (Paso 2) rechaza el archivo antes de cualquier conexión.',
+        fix: 'Ejecutá "ansible-playbook --syntax-check sitio.yml" para identificar la línea exacta. Usá un linter como "ansible-lint" o "yamllint" para prevenir estos errores.',
+      },
+      {
+        error: 'fatal: [web1]: UNREACHABLE! => {"msg": "Failed to connect to the host via ssh"}',
+        cause: 'El SSH Plugin (Paso 8) no pudo establecer conexión. Causas posibles: host apagado, puerto SSH incorrecto, clave SSH no autorizada, o firewall bloqueando el puerto.',
+        fix: 'Verificá conectividad manual con "ssh -vvv usuario@web1". Revisá "ansible_port", "ansible_user" y "ansible_ssh_private_key_file" en tu inventario. Comprobá el firewall con "telnet web1 22".',
+      },
+      {
+        error: 'El playbook termina sin errores pero los cambios no se aplicaron (changed=0 en todos los hosts)',
+        cause: 'gather_facts falló silenciosamente (Paso 5) o las condiciones "when:" de las tareas evaluaron como false debido a facts incorrectos o variables no resueltas en el Paso 4.',
+        fix: 'Ejecutá "ansible -m setup web1" para verificar que gather_facts funciona. Usá "ansible-playbook --verbose sitio.yml" y revisá el valor de las variables con "debug: var=mi_variable" antes de los condicionales.',
+      },
+    ],
   },
   {
     levelId: 2,
@@ -131,6 +188,9 @@ web2.ejemplo.com    : ok=2  changed=1  unreachable=0  failed=0</code></pre>
       'Combinar múltiples fuentes de inventario (estático + cloud) en un solo directorio',
       'Inspeccionar variables resueltas de un host con ansible-inventory',
       'Entender el orden de merging de variables entre group_vars y host_vars',
+    ],
+    prerequisites: [
+      'Nivel 2, Módulo 1: Flujo interno completo de Ansible',
     ],
     steps: [
       {
@@ -196,7 +256,60 @@ ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    quiz: [
+      {
+        question: '¿Qué grupo contiene SIEMPRE a todos los hosts del inventario, sin importar cómo estén agrupados?',
+        options: [
+          'El grupo "ungrouped"',
+          'El grupo "default"',
+          'El grupo "all"',
+          'El grupo definido en ansible.cfg',
+        ],
+        correctIndex: 2,
+        explanation: 'El grupo "all" es implícito e incluye todos los hosts del inventario. El grupo "ungrouped" contiene solo los hosts que no pertenecen a ningún grupo explícito. Variables en group_vars/all/ aplican a toda la infraestructura.',
+      },
+      {
+        question: 'Tenés una variable "env" definida en group_vars/all/ con valor "dev" y también en group_vars/produccion/ con valor "prod". Si "web1" pertenece al grupo "produccion", ¿qué valor tiene "env" para ese host?',
+        options: [
+          '"dev", porque group_vars/all/ tiene mayor precedencia',
+          '"prod", porque el grupo hijo sobreescribe al grupo all',
+          'Ansible lanza un error por variable duplicada',
+          'El valor depende del orden alfabético de los archivos',
+        ],
+        correctIndex: 1,
+        explanation: 'Las variables de grupo hijo (produccion) tienen mayor precedencia que el grupo all. El orden de merging es: all → grupo padre → grupo hijo → host. Por eso "env=prod" de group_vars/produccion/ gana sobre "env=dev" de group_vars/all/.',
+      },
+      {
+        question: '¿Cuál es la forma correcta de inspeccionar todas las variables resueltas de un host específico desde la línea de comandos?',
+        options: [
+          'cat inventario/host_vars/web1.ejemplo.com.yml',
+          'ansible-inventory -i inventario/ --host web1.ejemplo.com',
+          'ansible-playbook --list-hosts web1.ejemplo.com',
+          'ansible-config dump --only-changed',
+        ],
+        correctIndex: 1,
+        explanation: '"ansible-inventory --host" devuelve el JSON con todas las variables mergeadas del host: las de inventario, group_vars y host_vars ya combinadas. Es la única forma de ver el resultado final del merge, no las fuentes individuales.',
+      },
+    ],
+    realWorldCase: 'Un equipo tiene servidores bare-metal en group_vars/produccion/ y 50 instancias EC2 que aparecen via un inventory plugin de AWS. El Inventory Engine las combina automáticamente en el grupo "aws_ec2", permitiendo aplicar el mismo role de hardening a toda la infraestructura con un solo playbook sin duplicar configuración.',
+    troubleshooting: [
+      {
+        error: 'WARNING: Host file not found: /etc/ansible/hosts',
+        cause: 'No se especificó inventario con "-i" y no hay un inventario por defecto configurado en ansible.cfg. Ansible intenta leer /etc/ansible/hosts y no lo encuentra.',
+        fix: 'Siempre especificá el inventario explícitamente: "ansible-playbook -i inventario/ sitio.yml". Alternativamente, configurá "inventory = inventario/" en la sección [defaults] de ansible.cfg.',
+      },
+      {
+        error: 'fatal: [web1]: FAILED! => {"msg": "\'mi_variable\' is undefined"}',
+        cause: 'La variable se definió en group_vars/ de un grupo al que el host no pertenece, o hay un error de nombre en el archivo YAML del grupo (nombre de archivo no coincide con el nombre del grupo en el inventario).',
+        fix: 'Verificá la membresía del host con "ansible-inventory --host web1" y comprobá que el nombre del archivo en group_vars/ coincide exactamente con el nombre del grupo. Revisá también que el YAML no tiene errores de sintaxis.',
+      },
+      {
+        error: 'Variables de host_vars no se aplican — la variable del grupo sigue ganando',
+        cause: 'host_vars tiene mayor precedencia que group_vars, pero hay una variable extra-var ("-e") o una variable de play que está sobreescribiendo el valor, ya que ambas tienen mayor precedencia que host_vars.',
+        fix: 'Usá "ansible-playbook -v sitio.yml" para ver qué valor tiene la variable en cada host. La precedencia completa en Ansible tiene 22 niveles; extra_vars siempre gana. Evitá "-e" para variables de configuración permanente.',
+      },
+    ],
   },
   {
     levelId: 2,
@@ -209,6 +322,9 @@ ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
       'Elegir la estrategia correcta según el tipo de playbook y riesgo de fallo',
       'Usar la estrategia debug para inspeccionar variables en tareas fallidas',
       'Configurar serial para rolling updates controlados',
+    ],
+    prerequisites: [
+      'Nivel 2, Módulo 2: Inventory Engine — Cómo Ansible resuelve los hosts',
     ],
     steps: [
       {
@@ -251,7 +367,60 @@ ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    quiz: [
+      {
+        question: 'Con la estrategia "linear" y forks=5, tenés 10 hosts. ¿Cuántos hosts ejecutan la Tarea 1 simultáneamente como máximo?',
+        options: [
+          '10 hosts — todos a la vez',
+          '5 hosts — limitado por el número de forks',
+          '1 host — linear ejecuta uno por uno',
+          'Depende del número de cores de CPU del nodo de control',
+        ],
+        correctIndex: 1,
+        explanation: '"forks" define el número máximo de procesos paralelos. Con forks=5 y 10 hosts, Ansible lanza 5 procesos simultáneos para la Tarea 1, espera a que terminen, lanza los 5 restantes, y recién entonces avanza a la Tarea 2. Linear garantiza el orden entre tareas, los forks controlan el paralelismo dentro de cada tarea.',
+      },
+      {
+        question: '¿En qué escenario es PELIGROSO usar la estrategia "free"?',
+        options: [
+          'Cuando actualizás paquetes del sistema operativo',
+          'Cuando tenés un handler que depende de que una tarea anterior termine en todos los hosts',
+          'Cuando el playbook tiene más de 20 tareas',
+          'Cuando usás módulos de la colección community.general',
+        ],
+        correctIndex: 1,
+        explanation: 'Con "free", un host puede estar ejecutando la tarea 10 mientras otro ejecuta la tarea 2. Si un handler necesita que todos los hosts completen una tarea específica antes de dispararse, "free" puede generar race conditions. "linear" garantiza sincronización entre hosts en cada tarea.',
+      },
+      {
+        question: '¿Cuál es el principal caso de uso de la estrategia "debug"?',
+        options: [
+          'Reducir el tiempo de ejecución en playbooks grandes',
+          'Ejecutar tareas en paralelo en hosts de staging',
+          'Pausar la ejecución en tareas fallidas y permitir inspección interactiva de variables',
+          'Generar logs más detallados en ansible.cfg',
+        ],
+        correctIndex: 2,
+        explanation: 'La estrategia "debug" pausa la ejecución cuando una tarea falla y abre una consola interactiva donde podés inspeccionar variables, ejecutar módulos manualmente, y decidir si saltear o reintentar la tarea. Es el equivalente de un breakpoint en un debugger de código.',
+      },
+    ],
+    realWorldCase: 'Un equipo necesita hacer un rolling update de 100 servidores web sin downtime total. Usan "serial: 10" con estrategia "linear" para actualizar 10 servidores por vez, verificar que están healthy, y continuar con el siguiente batch, garantizando que al menos 90 servidores sirven tráfico en todo momento.',
+    troubleshooting: [
+      {
+        error: 'El playbook es extremadamente lento con muchos hosts aunque las tareas son simples',
+        cause: 'El número de forks es demasiado bajo (default: 5). Con 100 hosts y forks=5, la Tarea 1 necesita 20 rondas de ejecución secuencial antes de avanzar.',
+        fix: 'Aumentá los forks en ansible.cfg: "forks = 20" o "forks = 50". También considerá "strategy: free" si las tareas son independientes entre hosts. Verificá que el nodo de control tiene suficiente memoria para los procesos adicionales.',
+      },
+      {
+        error: 'fatal: [host1]: FAILED! y el playbook se detiene sin ejecutar el resto de los hosts',
+        cause: 'Con la estrategia "linear", cuando un host falla, Ansible lo marca como "failed" pero continúa con los demás hosts en esa tarea. Sin embargo, si "any_errors_fatal: true" está configurado, un fallo en cualquier host detiene todo el play.',
+        fix: 'Revisá si "any_errors_fatal: true" está en el play o en ansible.cfg. Usá "ignore_errors: true" en tareas no críticas. Para diagnóstico, cambiá temporalmente a "strategy: debug" para inspeccionar el estado del host fallido.',
+      },
+      {
+        error: 'Con "serial: 10", los handlers se ejecutan después de cada batch en lugar de al final',
+        cause: 'Este es el comportamiento correcto e intencional de "serial": los handlers se ejecutan al final de cada batch serial, no al final del play completo. Esto puede causar sorpresas si los handlers dependen de datos de todos los hosts.',
+        fix: 'Si necesitás que un handler corra una sola vez al final del play completo, usá "run_once: true" en el handler. Para reiniciar un load balancer solo cuando todos los backends están listos, colocá esa lógica en un play separado después del play con "serial".',
+      },
+    ],
   },
   {
     levelId: 2,
@@ -264,6 +433,9 @@ ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
       'Identificar qué módulos ejecutan lógica en el control node (template, copy, fetch)',
       'Entender por qué template renderiza Jinja2 localmente antes de transferir el resultado',
       'Reconocer los Action Plugins como el principal punto de extensibilidad de Ansible',
+    ],
+    prerequisites: [
+      'Nivel 2, Módulo 3: Strategy Plugin — Control de ejecución',
     ],
     steps: [
       {
@@ -294,7 +466,60 @@ ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    quiz: [
+      {
+        question: '¿Por qué el módulo "template" no transfiere el archivo .j2 original al host remoto?',
+        options: [
+          'Porque Jinja2 no está instalado en los hosts remotos por defecto',
+          'Porque el Action Plugin renderiza el template en el nodo de control donde viven las variables, y transfiere solo el resultado ya renderizado',
+          'Porque transferir archivos .j2 no está soportado por el protocolo SSH',
+          'Porque es una optimización de rendimiento para reducir el tamaño de la transferencia',
+        ],
+        correctIndex: 1,
+        explanation: 'El Action Plugin de "template" corre en el nodo de control donde el contexto completo de variables (hostvars, facts, group_vars) está disponible. Renderizar remotamente requeriría serializar y transferir cientos de variables. Además, algunas variables (como lookup() de archivos locales) son imposibles de evaluar remotamente.',
+      },
+      {
+        question: '¿Qué Action Plugin es "puramente local" — nunca establece conexión SSH al host remoto?',
+        options: [
+          'ansible.builtin.copy',
+          'ansible.builtin.fetch',
+          'ansible.builtin.import_tasks',
+          'ansible.builtin.package',
+        ],
+        correctIndex: 2,
+        explanation: '"import_tasks" e "include_tasks" son procesados completamente por el Action Plugin localmente: leen archivos YAML del nodo de control y los insertan en el flujo de ejecución. No hay conexión SSH ni transferencia de módulos. "copy", "fetch" y "package" todos requieren conexión remota.',
+      },
+      {
+        question: 'Un módulo custom necesita leer un certificado de una Vault local ANTES de transferirlo al host remoto. ¿Dónde debería implementarse esa lógica?',
+        options: [
+          'En el módulo Python que corre en el host remoto',
+          'En el Action Plugin que corre en el nodo de control, antes de la ejecución remota',
+          'En un handler que se ejecuta después de la tarea',
+          'En una tarea "delegate_to: localhost" separada',
+        ],
+        correctIndex: 1,
+        explanation: 'El Action Plugin es el lugar correcto para lógica pre/post-ejecución en el nodo de control: autenticación con Vault, descifrado de secretos, procesamiento local de archivos. El módulo Python solo debería recibir el dato ya procesado y aplicarlo en el host remoto.',
+      },
+    ],
+    realWorldCase: 'Un equipo de seguridad escribe un Action Plugin custom que intercepta el módulo "copy" para archivos con extensión ".pem": antes de transferir, verifica que el certificado no está vencido y que el hash coincide con el registro en su CA interna. Si la verificación falla, aborta la tarea con un mensaje descriptivo — todo sin modificar el módulo original ni los playbooks existentes.',
+    troubleshooting: [
+      {
+        error: 'El módulo "template" genera el archivo correcto localmente pero falla al copiarlo al host',
+        cause: 'El Action Plugin de "template" tiene dos fases: (1) renderizar Jinja2 localmente y (2) transferir via copy. La falla en la transferencia generalmente indica permisos insuficientes en el directorio destino del host remoto, o falta de espacio en disco.',
+        fix: 'Verificá permisos con "ansible host -m shell -a \'ls -la /directorio/destino/\'". Comprobá espacio con "df -h". Si el problema es el propietario del directorio, usá "become: true" en la tarea de template o pre-crea el directorio con los permisos correctos.',
+      },
+      {
+        error: 'ansible.builtin.fetch no trae el archivo — "msg": "file not found"',
+        cause: 'El Action Plugin de "fetch" primero verifica que el archivo existe en el host remoto antes de transferirlo. Si la ruta es incorrecta o el archivo no existe en ese host, falla. También puede fallar si el usuario remoto no tiene permisos de lectura sobre el archivo.',
+        fix: 'Verificá la existencia con "ansible host -m stat -a \'path=/ruta/al/archivo\'". Usá "fail_on_missing: false" si querés que la tarea continue cuando el archivo no existe. Para archivos de root, asegurate de usar "become: true".',
+      },
+      {
+        error: 'Un Action Plugin custom no se carga — "ERROR! no action detected in task"',
+        cause: 'Ansible busca Action Plugins en rutas específicas: action_plugins/ relativo al playbook, a los roles, o en las rutas configuradas en DEFAULT_ACTION_PLUGIN_PATH en ansible.cfg. Si el archivo no está en ninguna de esas rutas o tiene el nombre incorrecto, no se detecta.',
+        fix: 'Verificá que el archivo está en "action_plugins/" relativo a tu playbook. El nombre del archivo debe ser "nombre_del_modulo.py" (sin "action_" prefix). Confirmá con "ansible-doc -t action -l" que el plugin aparece en la lista de plugins disponibles.',
+      },
+    ],
   },
   {
     levelId: 2,
@@ -307,6 +532,9 @@ ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
       'Usar el callback profile_tasks para identificar las tareas más lentas',
       'Parsear la salida JSON de Ansible con jq para integraciones externas',
       'Entender los hooks de ciclo de vida que expone el sistema de callbacks',
+    ],
+    prerequisites: [
+      'Nivel 2, Módulo 4: Action Plugins — Lógica local vs remota',
     ],
     steps: [
       {
@@ -342,6 +570,59 @@ callback_enabled = timer, profile_tasks
           </div>
         `
       }
-    ]
+    ],
+    quiz: [
+      {
+        question: '¿Qué callback integrado de Ansible mostrás las 10 tareas más lentas al final de la ejecución?',
+        options: [
+          'ansible.posix.timer',
+          'ansible.posix.profile_tasks',
+          'community.general.json_logger',
+          'ansible.builtin.verbose',
+        ],
+        correctIndex: 1,
+        explanation: '"profile_tasks" es el callback para profiling de rendimiento: registra el tiempo de cada tarea y muestra un ranking de las más lentas al final. "timer" solo agrega la duración total del playbook. Son complementarios y se habilitan juntos en "callback_enabled".',
+      },
+      {
+        question: 'Necesitás que Ansible envíe una notificación a Slack cada vez que un playbook falla en producción. ¿Cuál es la arquitectura correcta?',
+        options: [
+          'Agregar una tarea "uri" al final de cada playbook que llame a la API de Slack',
+          'Implementar o configurar un Callback Plugin que reaccione al hook "v2_playbook_on_stats"',
+          'Usar un handler global que se dispara en caso de error',
+          'Configurar "notify: slack" en cada tarea crítica del playbook',
+        ],
+        correctIndex: 1,
+        explanation: 'Los Callback Plugins son el mecanismo correcto para integraciones transversales porque se disparan automáticamente en hooks del ciclo de vida (on_stats, on_task_failed, on_play_start) sin modificar los playbooks. Una tarea "uri" al final no se ejecuta si el playbook falla antes de llegar a ella.',
+      },
+      {
+        question: '¿Cómo activás múltiples callbacks adicionales (además del stdout_callback) en Ansible?',
+        options: [
+          'Listándolos en "stdout_callback" separados por comas',
+          'Creando un archivo en callback_plugins/ por cada callback que querés activar',
+          'Configurando "callback_enabled = timer, profile_tasks" en la sección [defaults] de ansible.cfg',
+          'Usando "ansible-playbook --callback timer,profile_tasks sitio.yml"',
+        ],
+        correctIndex: 2,
+        explanation: '"stdout_callback" solo acepta UN callback que controla el formato de salida en terminal. Los callbacks adicionales (notificaciones, métricas, logging) se activan en "callback_enabled" (antes llamado "callback_whitelist"). Múltiples callbacks en callback_enabled corren en paralelo sin conflictos.',
+      },
+    ],
+    realWorldCase: 'Un equipo de operaciones configura tres callbacks simultáneamente: "yaml" para salida legible en terminal, "profile_tasks" para detectar cuellos de botella de rendimiento, y un callback custom que envía métricas de duración y conteo de cambios a Datadog — todo sin modificar un solo playbook existente, solo cambiando ansible.cfg.',
+    troubleshooting: [
+      {
+        error: 'El callback "profile_tasks" no aparece en la salida aunque está en callback_enabled',
+        cause: 'La clave de configuración cambió entre versiones. En Ansible 2.9 era "callback_whitelist", en Ansible 2.10+ es "callback_enabled". Si usás la clave vieja en una versión nueva (o viceversa), el callback se ignora silenciosamente.',
+        fix: 'Verificá tu versión con "ansible --version". Para Ansible >= 2.10 usá "callback_enabled = profile_tasks". Para versiones anteriores usá "callback_whitelist = profile_tasks". También verificá que el callback esté disponible con "ansible-doc -t callback -l | grep profile".',
+      },
+      {
+        error: 'stdout_callback = json genera salida inválida cuando hay caracteres especiales o encoding UTF-8 en los resultados',
+        cause: 'Algunos módulos (especialmente "command" y "shell") pueden devolver bytes sin decodificar en sus campos "stdout"/"stderr". El callback JSON intenta serializar estos bytes y falla o produce JSON malformado.',
+        fix: 'Agregá "environment: {PYTHONIOENCODING: utf-8}" al play o configurá "force_color = False" en ansible.cfg. Para parsear la salida JSON con jq, redirigí stderr a /dev/null: "ansible-playbook sitio.yml 2>/dev/null | jq ."',
+      },
+      {
+        error: 'Un callback custom no se dispara — las notificaciones a Slack nunca llegan aunque el playbook falla',
+        cause: 'El callback no implementa el hook correcto. Para capturar fallos de tareas individuales se necesita "v2_runner_on_failed"; para el resumen final (incluyendo hosts unreachable) se necesita "v2_playbook_on_stats". Implementar solo uno puede dejar casos sin cubrir.',
+        fix: 'Revisá que el callback implementa todos los hooks relevantes. Para notificaciones de fallo completas, implementá "v2_runner_on_failed", "v2_runner_on_unreachable", y "v2_playbook_on_stats". Verificá que el callback está en la ruta correcta (callback_plugins/ relativo al playbook o en ANSIBLE_CALLBACK_PLUGINS).',
+      },
+    ],
   }
 ];

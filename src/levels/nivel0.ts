@@ -1018,6 +1018,36 @@ ansible-lint mi-playbook.yml</code></pre>
         `
       }
     ],
+    prerequisites: [
+      'Haber completado el módulo de Redes (Módulo 2 del Nivel 0)',
+      'Tener un editor de texto configurado con soporte YAML (VSCode, Neovim, etc.)',
+    ],
+    quiz: [
+      {
+        question: '¿Qué carácter se usa en YAML para definir una lista?',
+        options: ['*', '-', '|', '#'],
+        correctIndex: 1,
+        explanation: 'El guión "-" seguido de un espacio define cada ítem de una lista en YAML. Por ejemplo: "- nginx" define un ítem de lista con el valor "nginx".',
+      },
+      {
+        question: '¿Cuál es la diferencia entre los operadores "|" y ">" para texto multilínea en YAML?',
+        options: [
+          '| preserva saltos de línea; > los colapsa en un espacio',
+          '| colapsa saltos de línea; > los preserva',
+          'Ambos hacen lo mismo, son intercambiables',
+          '| es para comentarios; > es para multilínea',
+        ],
+        correctIndex: 0,
+        explanation: 'El operador "|" (literal block) preserva cada salto de línea tal cual. El operador ">" (folded block) colapsa los saltos de línea en espacios, produciendo un solo párrafo. En Ansible usás "|" cuando necesitás scripts o contenido donde los saltos de línea importan.',
+      },
+      {
+        question: 'En YAML, ¿cuál es el tipo de dato del valor en `habilitado: true`?',
+        options: ['String "true"', 'Booleano verdadero', 'Número 1', 'Depende del contexto'],
+        correctIndex: 1,
+        explanation: 'En YAML, `true`, `false`, `yes`, `no`, `on` y `off` (sin comillas) son booleanos. Si querés el string "true", debés escribirlo entre comillas: `habilitado: "true"`. Ansible es sensible a esta distinción en parámetros de módulos.',
+      },
+    ],
+    realWorldCase: 'En un equipo de infraestructura que gestiona cientos de servidores, todos los playbooks, inventarios y archivos de variables están escritos en YAML. Un error de indentación o un carácter especial sin comillas puede hacer fallar un despliegue entero — por eso se usa yamllint como parte del pipeline de CI/CD antes de ejecutar cualquier playbook en producción.',
     troubleshooting: [
       {
         error: 'yaml.scanner.ScannerError: mapping values are not allowed here',
@@ -1339,6 +1369,65 @@ permisos = oct(stat.S_IMODE(info.st_mode))  # '0o644'</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Haber completado el módulo de Linux (Módulo 1 del Nivel 0)',
+      'Haber completado el módulo de Redes (Módulo 2 del Nivel 0)',
+      'Haber completado el módulo de YAML (Módulo 3 del Nivel 0)',
+      'Python 3.x instalado en tu máquina local',
+    ],
+    quiz: [
+      {
+        question: '¿Por qué los hosts remotos necesitan Python instalado para que Ansible funcione?',
+        options: [
+          'Para ejecutar el proceso de SSH en el host remoto',
+          'Porque Ansible copia y ejecuta módulos Python directamente en cada host',
+          'Para procesar las plantillas Jinja2 en el host remoto',
+          'Python no es necesario si usás Ansible en modo agentless',
+        ],
+        correctIndex: 1,
+        explanation: 'Ansible copia cada módulo (un archivo .py) al directorio /tmp del host remoto y lo ejecuta usando el intérprete Python local. Sin Python 3.x en el host, los módulos no pueden correr. La única excepción son los módulos "raw" y "script" que usan SSH puro sin Python.',
+      },
+      {
+        question: 'En un traceback de Ansible como "ModuleNotFoundError: No module named boto3", ¿qué indica este error?',
+        options: [
+          'Boto3 no está instalado en el control node',
+          'El módulo boto3 de Ansible no existe en esa versión',
+          'Boto3 no está instalado en el host remoto donde se ejecutó el módulo',
+          'El nombre del módulo en el playbook está mal escrito',
+        ],
+        correctIndex: 2,
+        explanation: 'El traceback se genera en el host remoto, donde el módulo Python de Ansible intentó importar boto3 y no lo encontró. La solución es instalar boto3 en el host remoto con "pip3 install boto3", no en el control node.',
+      },
+      {
+        question: '¿Qué relación tienen los filtros Jinja2 de Ansible (como `| length` o `| upper`) con Python?',
+        options: [
+          'Son funciones propias de Ansible sin relación con Python',
+          'Son equivalentes a métodos y funciones nativas de Python (len(), str.upper())',
+          'Son funciones de JavaScript transpiladas para Ansible',
+          'No tienen relación — Jinja2 es un sistema separado de Python',
+        ],
+        correctIndex: 1,
+        explanation: 'Jinja2 es un motor de templates escrito en Python que Ansible usa para evaluar expresiones {{ }}. Los filtros como `| length` mapean directamente a `len()` de Python, y `| upper` a `str.upper()`. Entender Python te permite usar filtros Jinja2 con mayor confianza y creatividad.',
+      },
+    ],
+    realWorldCase: 'En empresas que usan Ansible para provisionar infraestructura en AWS, el módulo amazon.aws.ec2_instance está escrito en Python y requiere la librería boto3 en los hosts que lo ejecutan. Los equipos de platform engineering gestionan las versiones de Python y sus dependencias como parte del proceso de bootstrap de cada nuevo servidor — antes de poder usar Ansible con él.',
+    troubleshooting: [
+      {
+        error: '/usr/bin/python3: No such file or directory',
+        cause: 'Python 3 no está instalado en el host remoto, o el intérprete está en una ruta diferente a la que Ansible detectó automáticamente.',
+        fix: 'Instalá Python con el módulo raw: `ansible all -m raw -a "apt install -y python3"`. Luego especificá la ruta correcta en el inventario con: `ansible_python_interpreter: /usr/bin/python3.11`',
+      },
+      {
+        error: 'ModuleNotFoundError: No module named \'MODULE_NAME\'',
+        cause: 'El módulo Python requerido por la tarea (boto3, psycopg2, paramiko, etc.) no está instalado en el host remoto donde Ansible ejecuta el módulo.',
+        fix: 'Instalá la dependencia en el host remoto antes de usarla: `ansible all -m pip -a "name=boto3 state=present"`. Para módulos de colecciones cloud, revisá los requirements de la colección en su documentación oficial.',
+      },
+      {
+        error: 'INTERPRETER_PYTHON_FALLBACK: /usr/bin/python3 is not being used — using /usr/bin/python instead',
+        cause: 'Ansible está usando Python 2 como intérprete porque `ansible_python_interpreter` no está configurado y Python 3 no es el default del sistema.',
+        fix: 'Forzá Python 3 en el inventario o group_vars: `ansible_python_interpreter: /usr/bin/python3`. Para toda la flota, configuralo en `group_vars/all.yml`. Ansible 2.12+ usa Python 3 por default, pero sistemas antiguos pueden tener Python 2 como fallback.',
+      },
+    ],
   }
 ];

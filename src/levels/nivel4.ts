@@ -106,7 +106,55 @@ ansible all -m user -a "name=deploy shell=/bin/bash groups=sudo" -b</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar el Nivel 0 — Fundamentos de Ansible',
+      'Completar el Nivel 1 — Inventario y Conexión SSH',
+      'Completar el Nivel 2 — Módulos esenciales',
+    ],
+    realWorldCase: 'Un SRE recibe una alerta de disco lleno en producción. En lugar de conectarse a cada servidor por SSH, ejecuta <code>ansible servidores_web -m command -a "df -h /var"</code> y en segundos tiene el estado de todos los nodos.',
+    quiz: [
+      {
+        question: '¿Qué flag del comando ansible permite escalar privilegios a root en el host remoto?',
+        options: ['-u root', '-b / --become', '--sudo', '-p'],
+        correctIndex: 1,
+        explanation: '-b (o --become) activa la escalada de privilegios. Por defecto usa sudo para convertirse en root, aunque se puede cambiar con --become-method y --become-user.',
+      },
+      {
+        question: '¿Qué módulo se usa para recopilar facts (variables del sistema) de un host remoto?',
+        options: ['ansible.builtin.facts', 'ansible.builtin.gather', 'ansible.builtin.setup', 'ansible.builtin.info'],
+        correctIndex: 2,
+        explanation: 'El módulo setup recopila todos los facts del host: distribución, IP, memoria, CPU, etc. Se puede filtrar con -a "filter=ansible_*".',
+      },
+      {
+        question: '¿Cuál es la diferencia entre el módulo command y el módulo shell en comandos ad-hoc?',
+        options: [
+          'No hay diferencia, son alias',
+          'shell permite pipes y redirecciones; command no',
+          'command permite pipes; shell no',
+          'shell solo funciona en Linux',
+        ],
+        correctIndex: 1,
+        explanation: 'El módulo shell ejecuta el comando dentro de /bin/sh, lo que permite usar pipes (|), redirecciones (>) y variables de entorno. El módulo command los ejecuta directamente sin shell.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'UNREACHABLE! => {"msg": "Failed to connect to the host via ssh"}',
+        cause: 'Ansible no puede establecer la conexión SSH con el host: clave incorrecta, puerto diferente o host inaccesible.',
+        fix: 'Verificá con ssh -v usuario@host. Revisá ansible_host, ansible_port y ansible_ssh_private_key_file en el inventario.',
+      },
+      {
+        error: 'Missing sudo password',
+        cause: 'Se usó -b (become) pero el usuario remoto requiere contraseña para sudo y no se proporcionó.',
+        fix: 'Agregá -K para ingresar la contraseña de sudo interactivamente, o configurá NOPASSWD en /etc/sudoers del host remoto.',
+      },
+      {
+        error: 'ERROR! No hosts matched the pattern',
+        cause: 'El patrón de hosts no coincide con ningún host o grupo definido en el inventario.',
+        fix: 'Verificá con ansible-inventory --list que el grupo o host existe. Comprobá que estás usando el inventario correcto con -i.',
+      },
+    ],
   },
   {
     levelId: 4,
@@ -204,7 +252,48 @@ ansible-playbook --timeout 60 sitio.yml</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar el Módulo 1 del Nivel 4 — ansible ad-hoc',
+    ],
+    realWorldCase: 'Un equipo de DevOps automatiza el despliegue de su aplicación ejecutando <code>ansible-playbook deploy.yml --limit produccion --tags app</code>, limitando el alcance a producción y solo las tareas de la aplicación, sin tocar la configuración del sistema.',
+    quiz: [
+      {
+        question: '¿Qué flag de ansible-playbook activa el modo "dry run" sin ejecutar cambios reales?',
+        options: ['--verbose', '--check', '--diff', '--syntax-check'],
+        correctIndex: 1,
+        explanation: '--check ejecuta el playbook en modo simulación: muestra qué cambiaría pero no aplica cambios reales en los hosts.',
+      },
+      {
+        question: '¿Cómo se limita la ejecución de un playbook a un subconjunto de hosts del inventario?',
+        options: ['--hosts web1,web2', '--limit web1,web2', '--filter web1,web2', '--target web1,web2'],
+        correctIndex: 1,
+        explanation: '--limit acepta nombres de hosts, grupos, y patrones de exclusión como "servidores_web:!web3". Permite ejecutar un playbook sobre un subconjunto sin modificar el inventario.',
+      },
+      {
+        question: '¿Qué flag permite pasar variables extra desde la línea de comandos a un playbook?',
+        options: ['-v', '-e / --extra-vars', '--vars', '--set'],
+        correctIndex: 1,
+        explanation: '-e (--extra-vars) tiene la mayor precedencia de todas las variables en Ansible. Se puede usar como string JSON, pares clave=valor, o apuntando a un archivo con @archivo.yml.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'ERROR! the playbook: sitio.yml could not be found',
+        cause: 'El archivo de playbook no existe en la ruta indicada o el comando se ejecuta desde el directorio equivocado.',
+        fix: 'Verificá el directorio actual con pwd. Usá una ruta absoluta o relativa correcta al archivo .yml del playbook.',
+      },
+      {
+        error: 'fatal: [web1]: FAILED! => {"msg": "Missing sudo password"}',
+        cause: 'El playbook usa become: true pero el usuario remoto necesita contraseña para sudo.',
+        fix: 'Ejecutá con -K para pedir la contraseña de become interactivamente, o configurá NOPASSWD para ese usuario en el host remoto.',
+      },
+      {
+        error: 'WARNING: provided hosts list is empty, only localhost is available',
+        cause: 'El patrón de hosts en el play no coincide con ningún host del inventario especificado.',
+        fix: 'Verificá el inventario con ansible-inventory --list. Asegurate de pasar -i inventario/ o tener inventory configurado en ansible.cfg.',
+      },
+    ],
   },
   {
     levelId: 4,
@@ -295,7 +384,53 @@ pipelining = True</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar el Módulo 2 del Nivel 4 — ansible-playbook',
+    ],
+    realWorldCase: 'Un ingeniero detecta que sus playbooks tardan 40 segundos más de lo esperado. Con <code>ansible-config dump --only-changed</code> descubre que pipelining está desactivado y que forks está en 2. Corrige ambas opciones en ansible.cfg y reduce el tiempo de ejecución a la mitad.',
+    quiz: [
+      {
+        question: '¿Qué subcomando de ansible-config muestra solo la configuración que difiere de los valores por defecto?',
+        options: ['ansible-config list --modified', 'ansible-config dump --only-changed', 'ansible-config diff', 'ansible-config show --custom'],
+        correctIndex: 1,
+        explanation: 'ansible-config dump --only-changed filtra la salida para mostrar únicamente las opciones que han sido modificadas respecto a sus valores predeterminados, facilitando auditorías.',
+      },
+      {
+        question: '¿Cómo se genera un archivo ansible.cfg de referencia con todas las opciones disponibles comentadas?',
+        options: ['ansible-config list > ansible.cfg', 'ansible-config init > ansible.cfg', 'ansible-config dump --full > ansible.cfg', 'ansible-config export > ansible.cfg'],
+        correctIndex: 1,
+        explanation: 'ansible-config init genera un ansible.cfg completo con todas las opciones disponibles, cada una comentada con su descripción y valor por defecto.',
+      },
+      {
+        question: '¿En qué orden de precedencia busca Ansible el archivo ansible.cfg?',
+        options: [
+          'ANSIBLE_CONFIG → /etc/ansible/ansible.cfg → ~/.ansible.cfg → ./ansible.cfg',
+          'ANSIBLE_CONFIG → ./ansible.cfg → ~/.ansible.cfg → /etc/ansible/ansible.cfg',
+          './ansible.cfg → ~/.ansible.cfg → /etc/ansible/ansible.cfg → ANSIBLE_CONFIG',
+          '~/.ansible.cfg → ./ansible.cfg → ANSIBLE_CONFIG → /etc/ansible/ansible.cfg',
+        ],
+        correctIndex: 1,
+        explanation: 'Ansible busca en este orden: variable de entorno ANSIBLE_CONFIG, luego ./ansible.cfg en el directorio actual, luego ~/.ansible.cfg y finalmente /etc/ansible/ansible.cfg. El primero encontrado gana.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'Ansible is in a world writable directory, ignoring ansible.cfg',
+        cause: 'El directorio donde está ansible.cfg tiene permisos de escritura para todos (world-writable), lo que representa un riesgo de seguridad.',
+        fix: 'Corregí los permisos del directorio con chmod o-w . para quitar escritura a "otros". Ansible ignorará el cfg si el directorio es world-writable.',
+      },
+      {
+        error: 'Invalid value for configuration option DEFAULT_FORKS',
+        cause: 'El valor asignado a una opción de configuración no es del tipo esperado (por ejemplo, texto donde se espera un número).',
+        fix: 'Revisá el tipo esperado con ansible-config list y corregí el valor en ansible.cfg. Para forks debe ser un entero positivo.',
+      },
+      {
+        error: 'Could not find or access ansible.cfg',
+        cause: 'Se especificó la variable ANSIBLE_CONFIG apuntando a un archivo que no existe.',
+        fix: 'Verificá que la ruta en ANSIBLE_CONFIG es correcta con ls -la $ANSIBLE_CONFIG. O remové la variable de entorno para que Ansible use los paths por defecto.',
+      },
+    ],
   },
   {
     levelId: 4,
@@ -351,7 +486,53 @@ ansible-doc -t callback -l</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar el Módulo 3 del Nivel 4 — ansible-config',
+    ],
+    realWorldCase: 'Un desarrollador escribe un playbook que usa el módulo ansible.builtin.template pero no recuerda los parámetros exactos. Con <code>ansible-doc -s ansible.builtin.template</code> obtiene un snippet listo para copiar con todos los campos disponibles.',
+    quiz: [
+      {
+        question: '¿Qué flag de ansible-doc muestra un snippet mínimo del módulo listo para usar en un playbook?',
+        options: ['-l', '-t', '-s', '-e'],
+        correctIndex: 2,
+        explanation: '-s (--snippet) muestra un resumen conciso del módulo con los parámetros más importantes en formato YAML, listo para copiar en un playbook.',
+      },
+      {
+        question: '¿Cómo se buscan todos los módulos disponibles que contienen la palabra "user"?',
+        options: [
+          'ansible-doc --search user',
+          'ansible-doc -l | grep user',
+          'ansible-doc -f user',
+          'ansible-doc --find user',
+        ],
+        correctIndex: 1,
+        explanation: 'ansible-doc -l lista todos los módulos disponibles. Combinado con grep se puede filtrar por nombre o descripción. Es la forma estándar de descubrir módulos relacionados con un tema.',
+      },
+      {
+        question: '¿Qué flag de ansible-doc se usa para ver documentación de un inventory plugin en lugar de un módulo?',
+        options: ['-m inventory', '-t inventory', '--plugin-type inventory', '--kind inventory'],
+        correctIndex: 1,
+        explanation: '-t (--type) especifica el tipo de plugin a documentar: inventory, callback, connection, lookup, become, etc. Por defecto ansible-doc muestra módulos (type=module).',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'ERROR! module ansible.builtin.copy was not found',
+        cause: 'El nombre del módulo o la collection no está instalada, o se escribió mal el FQCN (Fully Qualified Collection Name).',
+        fix: 'Verificá el nombre exacto con ansible-doc -l | grep copy. Para módulos de collections externas, instalá primero con ansible-galaxy collection install.',
+      },
+      {
+        error: 'No module found matching ...',
+        cause: 'Se usó un nombre corto de módulo que coincide con múltiples collections instaladas.',
+        fix: 'Usá el FQCN completo, por ejemplo ansible.builtin.copy en lugar de solo copy. Así ansible-doc resuelve sin ambigüedad.',
+      },
+      {
+        error: 'ansible-doc: error: no such option: --snippet',
+        cause: 'Se usó --snippet en lugar de -s, ya que ansible-doc usa la forma corta para el snippet.',
+        fix: 'Usá -s en lugar de --snippet. El flag largo correcto es --snippet solo en versiones modernas de Ansible; en otras es solo -s.',
+      },
+    ],
   },
   {
     levelId: 4,
@@ -444,7 +625,63 @@ ansible-galaxy collection init mi_empresa.mi_collection</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar el Módulo 4 del Nivel 4 — ansible-doc',
+    ],
+    realWorldCase: 'Un equipo hereda un proyecto de Ansible sin documentación. Con <code>ansible-galaxy role install -r requirements.yml</code> instalan en segundos todos los roles de la comunidad que el proyecto necesita, reproduciendo el entorno original sin intervención manual.',
+    quiz: [
+      {
+        question: '¿Cuál es la forma recomendada de instalar múltiples roles y collections en un proyecto Ansible?',
+        options: [
+          'Instalar cada uno con un comando separado',
+          'Listarlos en requirements.yml y usar ansible-galaxy install -r requirements.yml',
+          'Clonar los repositorios manualmente en la carpeta roles/',
+          'Usar pip install para cada dependencia',
+        ],
+        correctIndex: 1,
+        explanation: 'requirements.yml centraliza todas las dependencias (roles y collections) con sus versiones exactas. ansible-galaxy install -r requirements.yml instala todo de una vez, garantizando reproducibilidad.',
+      },
+      {
+        question: '¿Qué comando crea la estructura de directorios estándar para un nuevo rol de Ansible?',
+        options: [
+          'ansible-galaxy role create mi-rol',
+          'ansible-galaxy role init mi-rol',
+          'ansible-galaxy new role mi-rol',
+          'ansible-galaxy role scaffold mi-rol',
+        ],
+        correctIndex: 1,
+        explanation: 'ansible-galaxy role init mi-rol crea la estructura completa: tasks/, handlers/, defaults/, vars/, files/, templates/, meta/ y tests/, siguiendo la convención estándar de roles.',
+      },
+      {
+        question: '¿En qué directorio instala ansible-galaxy los roles por defecto?',
+        options: [
+          '/usr/share/ansible/roles',
+          '~/.ansible/roles',
+          './roles en el directorio actual',
+          '/etc/ansible/roles',
+        ],
+        correctIndex: 1,
+        explanation: 'Por defecto ansible-galaxy instala roles en ~/.ansible/roles. Se puede cambiar con roles_path en ansible.cfg o con el flag -p al instalar.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'ERROR! the role \'geerlingguy.nginx\' was not found in /root/.ansible/roles',
+        cause: 'Se referencia un rol en un playbook que no está instalado en ninguno de los roles_path configurados.',
+        fix: 'Instalá el rol con ansible-galaxy role install geerlingguy.nginx o agregalo a requirements.yml y ejecutá ansible-galaxy install -r requirements.yml.',
+      },
+      {
+        error: 'ERROR! No collection was found matching \'community.general\'',
+        cause: 'Se usa un módulo de una collection que no está instalada en collections_paths.',
+        fix: 'Instalá la collection con ansible-galaxy collection install community.general. Agregala a requirements.yml para reproducibilidad.',
+      },
+      {
+        error: 'HttpError on GET https://galaxy.ansible.com/api/: 429 Too Many Requests',
+        cause: 'Galaxy impone rate limiting. Se alcanzó el límite de peticiones desde la IP.',
+        fix: 'Esperá unos minutos e intentá de nuevo. Para CI/CD, configurá un servidor Ansible Automation Hub privado o usá git como fuente en requirements.yml.',
+      },
+    ],
   },
   {
     levelId: 4,
@@ -521,7 +758,58 @@ api_key: "{{ vault_api_key }}"</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar el Módulo 5 del Nivel 4 — ansible-galaxy',
+    ],
+    realWorldCase: 'Una startup almacena las contraseñas de base de datos y claves de API en archivos vault encriptados dentro de su repositorio Git. Con <code>ansible-vault edit</code> las actualiza sin desencriptarlas al disco, y los playbooks las leen automáticamente al ejecutarse con --vault-password-file.',
+    quiz: [
+      {
+        question: '¿Qué subcomando de ansible-vault permite editar un archivo encriptado sin desencriptarlo permanentemente en disco?',
+        options: ['ansible-vault open', 'ansible-vault edit', 'ansible-vault modify', 'ansible-vault change'],
+        correctIndex: 1,
+        explanation: 'ansible-vault edit desencripta el archivo en un editor temporal en memoria, guarda los cambios re-encriptados y elimina el archivo temporal. El archivo nunca queda en texto plano en disco.',
+      },
+      {
+        question: '¿Cómo se encripta un valor individual para incluirlo directamente en un archivo YAML sin encriptar el archivo completo?',
+        options: [
+          'ansible-vault encrypt --inline "valor"',
+          'ansible-vault encrypt_string "valor" --name variable',
+          'ansible-vault inline "valor"',
+          'ansible-vault string-encrypt "valor"',
+        ],
+        correctIndex: 1,
+        explanation: 'ansible-vault encrypt_string genera un bloque !vault | con el valor encriptado que se puede pegar directamente en cualquier archivo YAML. Permite mezclar variables normales y encriptadas en el mismo archivo.',
+      },
+      {
+        question: '¿Cuál es el patrón recomendado para organizar secretos con ansible-vault?',
+        options: [
+          'Encriptar todos los archivos group_vars completos',
+          'Guardar todos los secretos en un vault.yml encriptado y referenciarlos desde vars.yml con prefijo vault_',
+          'Usar encrypt_string en cada variable del playbook directamente',
+          'Mantener los secretos en variables de entorno del sistema',
+        ],
+        correctIndex: 1,
+        explanation: 'El patrón vault_/vars_ separa secrets (vault.yml encriptado con prefijo vault_) de referencias (vars.yml sin encriptar). Así podés ver qué variables existen sin revelar sus valores, y git diff es legible.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'ERROR! Decryption failed (no vault secrets would decrypt) on ...',
+        cause: 'La contraseña proporcionada no coincide con la usada para encriptar el archivo vault.',
+        fix: 'Verificá que estás usando la contraseña correcta. Si usás --vault-password-file, revisá que el archivo contenga exactamente la contraseña sin espacios extra ni saltos de línea adicionales.',
+      },
+      {
+        error: 'ERROR! A vault password must be specified to decrypt ...',
+        cause: 'El playbook incluye variables vault pero no se proporcionó la contraseña de vault al ejecutarlo.',
+        fix: 'Agregá --ask-vault-pass para ingresar la contraseña interactivamente, o --vault-password-file ~/.vault-pass para leerla de un archivo.',
+      },
+      {
+        error: 'ansible-vault: [Errno 13] Permission denied: vault.yml',
+        cause: 'El usuario que ejecuta ansible-vault no tiene permisos de escritura sobre el archivo vault.',
+        fix: 'Verificá los permisos con ls -la vault.yml. Ajustá con chmod u+w vault.yml o ejecutá con el usuario propietario del archivo.',
+      },
+    ],
   },
   {
     levelId: 4,
@@ -579,7 +867,58 @@ ansible-pull -U git@github.com:mi-org/config.git --private-key ~/.ssh/deploy_key
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar el Módulo 6 del Nivel 4 — ansible-vault',
+    ],
+    realWorldCase: 'Una empresa gestiona 5000 servidores web. En lugar de un control node central que empuja configuración, cada servidor ejecuta <code>ansible-pull</code> cada 30 minutos via cron, descargando y aplicando su configuración desde el repositorio Git corporativo de forma autónoma.',
+    quiz: [
+      {
+        question: '¿Cuál es la diferencia fundamental entre el modelo push (ansible-playbook) y el modelo pull (ansible-pull)?',
+        options: [
+          'ansible-pull es más rápido que ansible-playbook',
+          'En push el control node conecta a los hosts; en pull cada host se autoconfigura clonando el repositorio Git',
+          'ansible-pull solo funciona con inventarios dinámicos',
+          'En pull no se puede usar sudo/become',
+        ],
+        correctIndex: 1,
+        explanation: 'En el modelo push (estándar), el control node SSH a cada host y ejecuta las tareas. En el modelo pull, cada host ejecuta ansible-pull que clona el repo Git localmente y aplica el playbook sobre sí mismo.',
+      },
+      {
+        question: '¿Qué flag de ansible-pull especifica la URL del repositorio Git a clonar?',
+        options: ['-r', '-U', '--repo', '--git-url'],
+        correctIndex: 1,
+        explanation: '-U (--url) es el flag obligatorio de ansible-pull que especifica la URL del repositorio Git. Sin este flag, el comando no puede ejecutarse.',
+      },
+      {
+        question: '¿Cuál es la principal limitación del modelo pull respecto al modelo push?',
+        options: [
+          'No soporta variables',
+          'No hay feedback inmediato al operador sobre el resultado de la ejecución en cada host',
+          'Solo funciona con roles',
+          'Requiere Python 3 en el control node',
+        ],
+        correctIndex: 1,
+        explanation: 'En el modelo pull, cada host se autoconfigura de forma asíncrona. El operador no recibe feedback inmediato sobre si la ejecución fue exitosa o falló, a menos que implemente un sistema de reporte externo.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'fatal: repository \'https://github.com/...\' not found',
+        cause: 'La URL del repositorio es incorrecta, el repositorio es privado y no se proporcionaron credenciales, o la URL cambió.',
+        fix: 'Verificá la URL del repositorio. Para repos privados, usá SSH con --private-key o configurá credenciales. Con HTTPS, usá tokens de acceso personal.',
+      },
+      {
+        error: 'error: Your local changes to the following files would be overwritten by merge',
+        cause: 'ansible-pull intenta hacer git pull pero hay cambios locales en el directorio de trabajo que entran en conflicto.',
+        fix: 'ansible-pull usa --force por defecto en nuevas versiones. Si persiste, eliminá el directorio de trabajo con -d /ruta y dejá que lo clone de cero.',
+      },
+      {
+        error: 'Could not find or access playbook: local.yml',
+        cause: 'El playbook especificado no existe en la raíz del repositorio clonado.',
+        fix: 'Verificá que el archivo local.yml existe en la raíz del repositorio. Podés especificar una ruta relativa diferente como último argumento de ansible-pull.',
+      },
+    ],
   },
   {
     levelId: 4,
@@ -630,7 +969,53 @@ ansible-inventory -i inventario/ --list > /dev/null && echo "OK"</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar el Módulo 7 del Nivel 4 — ansible-pull',
+    ],
+    realWorldCase: 'Un administrador recibe una alerta de que un playbook falla con "host not in group". Con <code>ansible-inventory --graph --vars</code> verifica la jerarquía completa del inventario dinámico de AWS y detecta que un tag incorrecto en EC2 excluye el host del grupo esperado.',
+    quiz: [
+      {
+        question: '¿Qué subcomando de ansible-inventory muestra todos los hosts y sus variables en formato JSON?',
+        options: ['ansible-inventory --show', 'ansible-inventory --list', 'ansible-inventory --all', 'ansible-inventory --dump'],
+        correctIndex: 1,
+        explanation: '--list devuelve la representación completa del inventario en JSON, incluyendo grupos, hosts y variables. Es el formato que Ansible usa internamente y que los inventory scripts deben implementar.',
+      },
+      {
+        question: '¿Cómo se inspeccionan las variables resueltas de un host específico con ansible-inventory?',
+        options: [
+          'ansible-inventory --vars web1',
+          'ansible-inventory --host web1',
+          'ansible-inventory --inspect web1',
+          'ansible-inventory --show-host web1',
+        ],
+        correctIndex: 1,
+        explanation: '--host <nombre> muestra todas las variables que Ansible resolvería para ese host específico, combinando variables del inventario, group_vars y host_vars con sus precedencias correctas.',
+      },
+      {
+        question: '¿Qué flag de ansible-inventory muestra la jerarquía de grupos en formato árbol?',
+        options: ['--tree', '--graph', '--hierarchy', '--structure'],
+        correctIndex: 1,
+        explanation: '--graph muestra la jerarquía de grupos como un árbol ASCII, útil para visualizar la estructura del inventario y verificar que los hosts están en los grupos correctos.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: '[WARNING]: provided hosts list is empty, only localhost is available',
+        cause: 'ansible-inventory no encontró hosts en el inventario especificado o el path del inventario es incorrecto.',
+        fix: 'Verificá el path con -i inventario/ y que el directorio o archivo exista. Revisá también que los archivos de inventario tengan la extensión correcta (.yml, .ini, o sin extensión para scripts).',
+      },
+      {
+        error: 'ERROR! Failed to parse inventario/aws_ec2.yml with auto plugin',
+        cause: 'El inventory plugin dinámico (ej. aws_ec2) no está instalado o la collection requerida falta.',
+        fix: 'Instalá la collection necesaria: ansible-galaxy collection install amazon.aws. Verificá que boto3 y botocore estén instalados con pip install boto3.',
+      },
+      {
+        error: 'ansible-inventory: error: unrecognized arguments: --vars',
+        cause: '--vars solo funciona combinado con --graph, no como flag independiente.',
+        fix: 'Usá ansible-inventory --graph --vars en conjunto. El flag --vars solo tiene efecto para enriquecer la salida del grafo.',
+      },
+    ],
   },
   {
     levelId: 4,
@@ -685,6 +1070,57 @@ ansible-console servidores_web -b</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    prerequisites: [
+      'Completar el Módulo 8 del Nivel 4 — ansible-inventory',
+    ],
+    realWorldCase: 'Durante un incidente en producción, un SRE abre <code>ansible-console servidores_web -b</code> y ejecuta módulos interactivamente en todos los nodos simultáneamente para diagnosticar y mitigar el problema en tiempo real, sin necesidad de escribir un playbook de emergencia.',
+    quiz: [
+      {
+        question: '¿Qué comando dentro de la consola de ansible-console cambia el grupo de hosts objetivo?',
+        options: ['switch <grupo>', 'cd <grupo>', 'use <grupo>', 'target <grupo>'],
+        correctIndex: 1,
+        explanation: 'Dentro de ansible-console, el comando cd <grupo> cambia el grupo de hosts sobre el que se ejecutan los módulos, de forma similar a navegar directorios en una shell.',
+      },
+      {
+        question: '¿Cuál es el caso de uso principal de ansible-console respecto a los comandos ad-hoc regulares?',
+        options: [
+          'ansible-console es más rápido que ansible ad-hoc',
+          'Permite ejecutar múltiples módulos interactivamente sin reescribir el comando completo cada vez',
+          'ansible-console soporta más módulos que ansible ad-hoc',
+          'Solo ansible-console puede usar become',
+        ],
+        correctIndex: 1,
+        explanation: 'ansible-console mantiene el contexto de conexión y el grupo objetivo entre comandos. Ideal para sesiones de exploración o troubleshooting donde ejecutás varios módulos seguidos sin repetir flags.',
+      },
+      {
+        question: '¿Qué información muestra el prompt de ansible-console como "[f:5]"?',
+        options: [
+          'El número de forks (conexiones paralelas) configurado',
+          'El número de fallos en la última ejecución',
+          'El número de facts cargados',
+          'El número de archivos en el inventario',
+        ],
+        correctIndex: 0,
+        explanation: 'El prompt de ansible-console muestra usuario@grupo (cantidad_hosts)[f:forks]. El "[f:5]" indica el número de forks paralelos configurado, equivalente al flag -f de ansible.',
+      },
+    ],
+    troubleshooting: [
+      {
+        error: 'ansible-console: command not found',
+        cause: 'ansible-console no está en el PATH o la instalación de Ansible no incluye todos los comandos CLI.',
+        fix: 'Verificá la instalación con pip show ansible. En algunas distribuciones se instala como paquete separado. Probá pip install ansible para la instalación completa.',
+      },
+      {
+        error: 'No hosts matched the pattern inside console',
+        cause: 'Se ejecutó ansible-console con un grupo que no existe en el inventario o se omitió -i con el inventario correcto.',
+        fix: 'Verificá los grupos disponibles con ansible-inventory --graph antes de abrir la consola. Asegurate de pasar -i inventario/ al iniciar ansible-console.',
+      },
+      {
+        error: 'EOF when reading a line (consola se cierra inesperadamente)',
+        cause: 'ansible-console recibió EOF en stdin, lo que ocurre cuando se intenta usar en pipelines o scripts no interactivos.',
+        fix: 'ansible-console está diseñado solo para uso interactivo. Para scripts automatizados, usá comandos ansible ad-hoc normales en su lugar.',
+      },
+    ],
   }
 ];

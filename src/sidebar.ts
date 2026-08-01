@@ -161,27 +161,10 @@ function applyCollapsedLayout(collapsed: boolean): void {
 function initToggle(toggle: HTMLElement | null, sidebar: HTMLElement): void {
   if (!toggle) return;
 
-  // Apply saved collapsed state on init (desktop only)
-  if (window.innerWidth > 768) {
-    const saved = localStorage.getItem('sidebarCollapsed') === 'true';
-    if (saved) {
-      sidebar.classList.add('collapsed');
-      applyCollapsedLayout(true);
-      toggle.setAttribute('aria-expanded', 'false');
-    }
-  }
-
   toggle.addEventListener('click', () => {
     const mainLayout = document.getElementById('main-layout');
-    if (window.innerWidth <= 768) {
-      sidebar.classList.toggle('open');
-      mainLayout?.classList.toggle('sidebar-open', sidebar.classList.contains('open'));
-    } else {
-      const isCollapsed = sidebar.classList.toggle('collapsed');
-      applyCollapsedLayout(isCollapsed);
-      toggle.setAttribute('aria-expanded', String(!isCollapsed));
-      localStorage.setItem('sidebarCollapsed', String(isCollapsed));
-    }
+    sidebar.classList.toggle('open');
+    mainLayout?.classList.toggle('sidebar-open', sidebar.classList.contains('open'));
   });
 }
 

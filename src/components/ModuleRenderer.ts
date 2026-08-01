@@ -298,10 +298,14 @@ export class ModuleRenderer {
   }
 
   private renderWelcome(): void {
+    const currentLevel = parseInt(localStorage.getItem('lastLevel') ?? '0') || 0;
+    const progressPct = Math.round((currentLevel / 23) * 100);
+
     const pathNodes = levelRegistry.map(lvl => {
       const slug = sanitizeBadge(lvl.badge);
+      const isActive = lvl.id === currentLevel && currentLevel > 0;
       return `
-        <div class="lp-node" onclick="location.hash='nivel-${lvl.id}/modulo-1'" role="button" tabindex="0">
+        <div class="lp-node${isActive ? ' lp-node--active' : ''}" onclick="location.hash='nivel-${lvl.id}/modulo-1'" role="button" tabindex="0">
           <div class="lp-node-num">Nivel ${lvl.id}</div>
           <div class="lp-node-title">${escapeHtml(lvl.title)}</div>
           <span class="lp-node-badge badge-${slug}">${escapeHtml(lvl.badge)}</span>
@@ -313,23 +317,23 @@ export class ModuleRenderer {
       <div class="welcome-screen">
         <h2>Bienvenido al Curso Completo de <span>Ansible</span></h2>
         <p>Desde los fundamentos de Linux y YAML hasta el desarrollo de módulos y plugins propios. 23 niveles, decenas de módulos con diagramas interactivos y ejemplos anotados.</p>
-        <div class="welcome-stats">
-          <div class="welcome-stat">
-            <div class="stat-num">23</div>
-            <div class="stat-label">Niveles</div>
-          </div>
-          <div class="welcome-stat">
-            <div class="stat-num">70+</div>
-            <div class="stat-label">Módulos</div>
-          </div>
-          <div class="welcome-stat">
-            <div class="stat-num">5</div>
-            <div class="stat-label">Diagramas SVG</div>
-          </div>
+        <div class="welcome-stats-card">
+          <div class="wsc-item"><span class="wsc-icon">📚</span><span class="wsc-val">23</span><span class="wsc-label">Niveles</span></div>
+          <div class="wsc-item"><span class="wsc-icon">🧩</span><span class="wsc-val">70+</span><span class="wsc-label">Módulos</span></div>
+          <div class="wsc-item"><span class="wsc-icon">💻</span><span class="wsc-val">150+</span><span class="wsc-label">Ejemplos</span></div>
+          <div class="wsc-item"><span class="wsc-icon">🧪</span><span class="wsc-val">80+</span><span class="wsc-label">Laboratorios</span></div>
+          <div class="wsc-item"><span class="wsc-icon">📈</span><span class="wsc-val">Principiante → Experto</span><span class="wsc-label">Nivel</span></div>
         </div>
         <p>Seleccioná un nivel en el menú lateral para comenzar, o empezá desde el principio.</p>
         <button class="start-btn" onclick="location.hash='#nivel-0/modulo-1'">Comenzar desde el principio →</button>
         <div class="learning-path">
+          <div class="lp-progress">
+            <div class="lp-progress-label">Tu progreso</div>
+            <div class="lp-progress-bar-track">
+              <div class="lp-progress-bar-fill" style="width: ${progressPct}%"></div>
+            </div>
+            <div class="lp-progress-text">Nivel ${currentLevel} de 23</div>
+          </div>
           <div class="learning-path-title">Mapa del curso</div>
           <div class="learning-path-grid">${pathNodes}</div>
         </div>

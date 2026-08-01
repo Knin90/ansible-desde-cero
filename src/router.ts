@@ -22,6 +22,9 @@ export function getCurrentRoute(): Route {
 }
 
 export function navigate(level: number, module: number): void {
+  if (level >= 0) {
+    localStorage.setItem('lastLevel', String(level));
+  }
   window.location.hash = `nivel-${level}/modulo-${module}`;
 }
 

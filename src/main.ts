@@ -53,6 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const breadcrumbEl = document.getElementById('breadcrumb');
 
   onRouteChange(async ({ level, module }) => {
+    if (level >= 0) {
+      localStorage.setItem('lastLevel', String(level));
+    }
     await renderer.render(level, module);
     if (breadcrumbEl) {
       breadcrumbEl.textContent = getBreadcrumb(level, module);

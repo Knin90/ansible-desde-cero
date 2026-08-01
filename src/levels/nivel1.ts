@@ -23,6 +23,10 @@ export const nivel1Modules: ModuleContent[] = [
             <div class="analogy-box-header">💡 Analogía</div>
             <p>Imaginate que tenés 200 empleados y querés darles a todos la misma instrucción. Podés llamar a cada uno por teléfono (scripts manuales), o podés enviar un memorando a todos a la vez y que ellos lo apliquen (Puppet/Chef — modelo pull), o podés tener un mensajero que va a entregar el mensaje a cada uno directamente cuando vos lo ordenés (Ansible — modelo push).</p>
           </div>
+          <div class="tech-term-box">
+            <div class="tech-term-label">En términos técnicos</div>
+            Ansible usa un modelo push: el control node inicia activamente la conexión SSH con cada managed node, copia el módulo Python a <code>/tmp</code>, lo ejecuta y recibe el resultado JSON. No hay ningún daemon esperando órdenes en el servidor.
+          </div>
           <div class="highlight-box">
             <p><strong>El patrón común:</strong> todas estas herramientas requerían agentes instalados en los servidores, lenguajes de configuración propios (DSL), o ambos. El equipo de operaciones necesitaba aprender un nuevo lenguaje solo para automatizar su trabajo.</p>
           </div>
@@ -205,6 +209,14 @@ export const nivel1Modules: ModuleContent[] = [
               </ul>
             </div>
             <div class="lab-section">
+              <div class="lab-section-title">Resultado esperado</div>
+              <div class="lab-expected">
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> Podés describir con tus palabras las diferencias entre Puppet, Chef y Ansible</div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> Identificaste al menos dos herramientas de automatización que usás o conocés</div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> Podés explicar por qué Ansible eligió SSH sobre agentes propios</div>
+              </div>
+            </div>
+            <div class="lab-section">
               <div class="lab-section-title">Preguntas para reflexionar</div>
               <ul>
                 <li>¿Qué herramienta de automatización usás actualmente? ¿Qué problemas tenés con ella?</li>
@@ -245,6 +257,10 @@ export const nivel1Modules: ModuleContent[] = [
           <div class="analogy-box">
             <div class="analogy-box-header">💡 Analogía</div>
             <p>Pensá en Ansible como una empresa de logística. Vos sos la central de operaciones (control node), el camión es SSH, los almacenes son los servidores (managed nodes), el manifiesto de carga es el playbook, y el directorio de destinos es el inventario.</p>
+          </div>
+          <div class="tech-term-box">
+            <div class="tech-term-label">En términos técnicos</div>
+            El control node es la máquina donde Ansible está instalado y desde donde se ejecutan los playbooks. Los managed nodes son los servidores remotos gestionados, que solo requieren Python 3 y acceso SSH. El inventario es el archivo que mapea hosts a grupos, y el playbook es el documento YAML que declara el estado deseado.
           </div>
           <p>El diagrama de abajo muestra cómo estos componentes se relacionan:</p>
         `
@@ -361,6 +377,10 @@ bases_de_datos</code></pre>
             <div class="analogy-box-header">💡 Analogía</div>
             <p>SSH es el cartero de Ansible. Cada vez que Ansible necesita hacer algo en un servidor, le entrega el mensaje (el módulo Python), espera que lo ejecute, y trae la respuesta de vuelta.</p>
           </div>
+          <div class="tech-term-box">
+            <div class="tech-term-label">En términos técnicos</div>
+            Ansible utiliza OpenSSH con multiplexing (ControlMaster) para reutilizar la misma conexión TCP entre múltiples tareas del mismo play, reduciendo la latencia. Cada módulo se transfiere como un archivo Python cifrado y se ejecuta con el intérprete configurado en <code>ansible_python_interpreter</code>.
+          </div>
           <div class="code-block-wrapper">
             <div class="code-block-titlebar"><span class="code-block-lang">bash</span><span class="code-block-filename">ver-conexion.sh</span></div>
             <pre class="language-bash"><code class="language-bash"># Ejecutar con máximo verbose para ver cada paso SSH
@@ -406,6 +426,60 @@ ansible all -m ping -vvv
             <li>Si hay handlers notificados, los ejecuta al final del play</li>
             <li>Muestra el resumen del playbook (ok, changed, failed)</li>
           </ol>
+          <div class="internal-flow">
+            <div class="internal-flow-header">🔍 ¿Qué ocurre internamente cuando ejecutás ansible-playbook?</div>
+            <div class="internal-flow-steps">
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Parser YAML</div>
+                  <div class="flow-step-desc">Ansible usa PyYAML para parsear el playbook. Si hay errores de sintaxis, el proceso falla aquí antes de conectarse a ningún host.</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Resolución de inventario</div>
+                  <div class="flow-step-desc">El inventory plugin carga y parsea el inventario. Resuelve grupos, variables de grupo (group_vars/) y variables de host (host_vars/).</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Recopilación de facts (gather_facts)</div>
+                  <div class="flow-step-desc">Ansible ejecuta el módulo setup en cada host para recolectar información del sistema: OS, interfaces de red, memoria, CPU, etc. Estos facts están disponibles como variables en el playbook.</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Ejecución de tareas (task loop)</div>
+                  <div class="flow-step-desc">Para cada tarea: evalúa condiciones (when), resuelve variables Jinja2, selecciona el módulo, genera el código Python con los parámetros, y lo envía a los hosts (en paralelo si forks > 1).</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Procesamiento del resultado</div>
+                  <div class="flow-step-desc">Si changed=true, registra el cambio. Si notify está definido, marca el handler para ejecutar al final del play. Si failed=true, por defecto detiene la ejecución para ese host.</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Ejecución de handlers</div>
+                  <div class="flow-step-desc">Al finalizar el play, se ejecutan los handlers que fueron notificados durante la ejecución de tareas. Un handler se ejecuta una sola vez, sin importar cuántas tareas lo notificaron.</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Play recap</div>
+                  <div class="flow-step-desc">Muestra el resumen final: ok=X changed=Y unreachable=Z failed=W. Si failed o unreachable > 0, el proceso termina con código de salida no-cero.</div>
+                </div>
+              </div>
+            </div>
+          </div>
         `
       },
       {
@@ -449,6 +523,14 @@ ansible all -m ping -vvv
                 <li>Ambos hosts responden con <code>SUCCESS</code> y <code>"ping": "pong"</code></li>
                 <li>En la salida <code>-vvv</code> podés ver la línea <code>PUT /tmp/.ansible/tmp/.../AnsiballZ_ping.py</code></li>
               </ul>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Resultado esperado</div>
+              <div class="lab-expected">
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> <code>ansible all -m ping</code> responde <code>SUCCESS</code> en ambos hosts</div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> La salida con <code>-vvv</code> muestra claramente el proceso de copia del módulo Python</div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> El inventario tiene al menos dos hosts en grupos separados</div>
+              </div>
             </div>
             <div class="lab-section">
               <div class="lab-section-title">Preguntas para reflexionar</div>
@@ -528,6 +610,10 @@ ansible all -m ping -vvv
             <div class="analogy-box-header">💡 Analogía</div>
             <p>La idempotencia en Ansible es como pintar una pared de blanco. Si la pared ya es blanca, pasarle la brocha no cambia nada. Si es roja, la pinta de blanco. El resultado final es siempre el mismo sin importar el estado inicial.</p>
           </div>
+          <div class="tech-term-box">
+            <div class="tech-term-label">En términos técnicos</div>
+            La idempotencia en Ansible se implementa a nivel de módulo: cada módulo compara el estado actual del sistema con el estado deseado antes de hacer cualquier cambio. Si el estado ya es el correcto, el módulo retorna <code>changed: false</code> sin ejecutar ninguna acción.
+          </div>
           <div class="warning-box">
             <span class="box-icon">⚠️</span>
             <div class="box-content">No todos los módulos son idempotentes. El módulo <code>shell</code> y <code>command</code> NO son idempotentes por defecto — ejecutan el comando cada vez. Para hacerlos idempotentes, usá <code>creates</code>, <code>removes</code>, o <code>changed_when</code>.</div>
@@ -576,6 +662,10 @@ systemctl enable nginx
           <div class="analogy-box">
             <div class="analogy-box-header">💡 Analogía</div>
             <p>Es como pedirle a un arquitecto que construya una casa con 3 habitaciones. Vos describís el resultado (casa con 3 habitaciones), no los pasos (comprar ladrillos, mezclar cemento). El arquitecto decide cómo lograrlo.</p>
+          </div>
+          <div class="tech-term-box">
+            <div class="tech-term-label">En términos técnicos</div>
+            El modelo declarativo de Ansible describe el estado final deseado del sistema, no los pasos para llegar a él. El motor de ejecución de Ansible traduce esa descripción en acciones concretas dependiendo del estado actual de cada host, garantizando convergencia.
           </div>
         `
       },
@@ -707,6 +797,14 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=60s
                 <li>Segunda ejecución: <code>changed=0</code> en todas las tareas</li>
                 <li>Tercera ejecución (después de detener nginx): solo la tarea de <code>service</code> dice <code>changed=1</code></li>
               </ul>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Resultado esperado</div>
+              <div class="lab-expected">
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> La primera ejecución muestra <code>changed=2</code> (o más)</div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> La segunda ejecución muestra <code>changed=0</code> en todas las tareas</div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> Identificaste al menos una tarea que NO sería idempotente con <code>shell</code> o <code>command</code></div>
+              </div>
             </div>
             <div class="lab-section">
               <div class="lab-section-title">Preguntas para reflexionar</div>
@@ -1000,6 +1098,67 @@ ansible servidores_web -m command -a "uptime" -i inventory/hosts.ini -u deploy -
             <li>Ejecuta ese script (que no hace casi nada — solo responde "pong")</li>
             <li>Devuelve el resultado JSON</li>
           </ol>
+          <div class="internal-flow">
+            <div class="internal-flow-header">🔍 ¿Qué ocurre internamente?</div>
+            <div class="internal-flow-steps">
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Ansible lee ansible.cfg</div>
+                  <div class="flow-step-desc">Busca el archivo de configuración en el directorio actual, luego en ~/.ansible.cfg, luego en /etc/ansible/ansible.cfg.</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Carga el inventario</div>
+                  <div class="flow-step-desc">Parsea el archivo de inventario y construye el grafo de hosts y grupos. Resuelve qué hosts aplican al patrón "all".</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Abre conexión SSH</div>
+                  <div class="flow-step-desc">Establece una conexión SSH con multiplexing (ControlMaster) al host remoto. Usa la clave privada de ~/.ssh/ o la configurada en ansible_ssh_private_key_file.</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Copia el módulo ping.py a /tmp</div>
+                  <div class="flow-step-desc">Transfiere el archivo AnsiballZ_ping.py al directorio temporal del host remoto mediante sftp o scp.</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Ejecuta Python en el host remoto</div>
+                  <div class="flow-step-desc">Corre: <code>python3 /tmp/.ansible/tmp/.../AnsiballZ_ping.py</code>. El módulo simplemente devuelve {"ping": "pong"}.</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Recibe el JSON de respuesta</div>
+                  <div class="flow-step-desc">Ansible lee stdout del proceso remoto: {"changed": false, "ping": "pong"}. Si hay errores, los encuentra en stderr.</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div><div class="flow-step-line"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Borra el archivo temporal</div>
+                  <div class="flow-step-desc">El módulo se ejecuta como: <code>python3 ping.py && rm -f ping.py</code>. El host remoto queda exactamente igual que antes.</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-step-connector"><div class="flow-step-dot"></div></div>
+                <div class="flow-step-body">
+                  <div class="flow-step-title">Muestra el resultado</div>
+                  <div class="flow-step-desc">El control node procesa el JSON y muestra: <code>hostname | SUCCESS => {"changed": false, "ping": "pong"}</code>.</div>
+                </div>
+              </div>
+            </div>
+          </div>
           <p>Si el ping tiene éxito, confirmás que: la conexión SSH funciona, Python está instalado, y el usuario tiene permisos para ejecutar Python en <code>/tmp</code>.</p>
         `
       },

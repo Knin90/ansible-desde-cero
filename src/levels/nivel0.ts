@@ -18,6 +18,10 @@ export const nivel0Modules: ModuleContent[] = [
             <div class="analogy-box-header">💡 Analogía</div>
             <p>Pensá en Linux como el idioma nativo de los servidores. Ansible es el traductor — pero el traductor necesita conocer el idioma antes de poder traducirlo.</p>
           </div>
+          <div class="tech-term-box">
+            <div class="tech-term-label">En términos técnicos</div>
+            Linux es un kernel de sistema operativo de código abierto. Ansible se comunica con él mediante SSH, ejecutando comandos shell y módulos Python directamente en el sistema de archivos del host remoto.
+          </div>
         `
       },
       {
@@ -255,6 +259,15 @@ uptime             # carga promedio</code></pre>
                 <li><code>systemctl status nginx</code> muestra <code>active (running)</code></li>
                 <li>Los archivos <code>~/.ssh/id_ed25519</code> y <code>~/.ssh/id_ed25519.pub</code> existen</li>
               </ul>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Resultado esperado</div>
+              <div class="lab-expected">
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> El filesystem responde correctamente a <code>ls /etc</code> y <code>ls /var/log</code></div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> Los permisos del archivo cambiado se muestran correctamente con <code>ls -la</code></div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> <code>systemctl status nginx</code> muestra <code>active (running)</code></div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> El par de claves SSH existe en <code>~/.ssh/id_ed25519</code> y <code>~/.ssh/id_ed25519.pub</code></div>
+              </div>
             </div>
             <div class="lab-section">
               <div class="lab-section-title">Preguntas para reflexionar</div>
@@ -535,6 +548,10 @@ retries = 3                   # reintentar conexión 3 veces</code></pre>
             <div class="analogy-box-header">💡 Analogía</div>
             <p>Pensá en YAML como el formulario que llenás para instruir a Ansible. El sangrado (indentación) es como los campos del formulario — si los completás en el lugar equivocado, el formulario no tiene sentido.</p>
           </div>
+          <div class="tech-term-box">
+            <div class="tech-term-label">En términos técnicos</div>
+            YAML (YAML Ain't Markup Language) es un formato de serialización de datos legible por humanos. La indentación con espacios define la jerarquía de los nodos en el árbol de datos que Ansible parsea con PyYAML.
+          </div>
           <div class="tip-box">
             <span class="box-icon">💡</span>
             <div class="box-content">Configurá tu editor para que inserte 2 espacios cuando presionás Tab. En VSCode: <code>Editor: Tab Size = 2</code> + <code>Editor: Insert Spaces = true</code>.</div>
@@ -614,6 +631,10 @@ sin_elementos: []</code></pre>
           <div class="analogy-box">
             <div class="analogy-box-header">💡 Analogía</div>
             <p>Una lista YAML es exactamente como una lista de compras. Cada ítem empieza con un guión, uno debajo del otro, en el mismo nivel de indentación.</p>
+          </div>
+          <div class="tech-term-box">
+            <div class="tech-term-label">En términos técnicos</div>
+            En YAML, una secuencia (lista) es una colección ordenada de nodos. Cada elemento se indica con el carácter <code>- </code> seguido de su valor. En Python, una lista YAML se deserializa como <code>list</code>.
           </div>
           <div class="tip-box">
             <span class="box-icon">💡</span>
@@ -874,6 +895,15 @@ ansible-lint mi-playbook.yml</code></pre>
                 <li><code>yamllint practica.yml</code> no muestra errores</li>
                 <li>El archivo es legible para alguien que no lo escribió</li>
               </ul>
+            </div>
+            <div class="lab-section">
+              <div class="lab-section-title">Resultado esperado</div>
+              <div class="lab-expected">
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> <code>yamllint archivo.yml</code> no reporta errores</div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> El diccionario de servidor tiene al menos 4 claves</div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> El anchor se referencia correctamente en al menos dos lugares</div>
+                <div class="lab-expected-item"><span class="lab-expected-check">✓</span> El bloque multilínea preserva los saltos de línea con <code>|</code></div>
+              </div>
             </div>
             <div class="lab-section">
               <div class="lab-section-title">Preguntas para reflexionar</div>

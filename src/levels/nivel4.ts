@@ -7,6 +7,12 @@ export const nivel4Modules: ModuleContent[] = [
     title: 'ansible — Comando ad-hoc',
     objective: 'Dominar el comando ansible para ejecutar módulos directamente en hosts remotos sin necesidad de un playbook.',
     duration: '1 hora',
+    objectives: [
+      'Usar los flags -m, -a, -i, -b y -v del comando ansible',
+      'Ejecutar comandos ad-hoc para diagnóstico, instalación y gestión de servicios',
+      'Seleccionar hosts con patrones: grupos, wildcards, intersecciones y exclusiones',
+      'Recopilar facts de hosts remotos con ansible -m setup',
+    ],
     steps: [
       {
         title: 'Qué es un comando ad-hoc',
@@ -90,6 +96,14 @@ ansible web1 -m setup -a "filter=ansible_default_ipv4"
 # Crear un usuario
 ansible all -m user -a "name=deploy shell=/bin/bash groups=sudo" -b</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">ansible-playbook</div>
+              <div class="next-chapter-desc">Cuando las tareas son múltiples y repetibles, las encapsulás en un playbook y lo ejecutás con ansible-playbook.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -100,6 +114,12 @@ ansible all -m user -a "name=deploy shell=/bin/bash groups=sudo" -b</code></pre>
     title: 'ansible-playbook — Ejecutar playbooks',
     objective: 'Dominar todas las opciones del comando ansible-playbook para controlar la ejecución de playbooks.',
     duration: '1.5 horas',
+    objectives: [
+      'Usar --limit, --tags y --skip-tags para ejecuciones parciales',
+      'Ejecutar dry-runs con --check y --diff para previsualizar cambios',
+      'Empezar desde una tarea específica con --start-at-task',
+      'Pasar variables en línea de comandos con -e y desde archivos con -e @archivo.yml',
+    ],
     steps: [
       {
         title: 'Opciones fundamentales',
@@ -174,6 +194,14 @@ ansible-playbook -f 20 sitio.yml
 # Timeout de conexión (segundos)
 ansible-playbook --timeout 60 sitio.yml</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">ansible-config</div>
+              <div class="next-chapter-desc">Inspeccionás y gestionás la configuración activa de Ansible: qué archivo se carga, qué opciones están activas y cómo generar un ansible.cfg completo.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -184,6 +212,12 @@ ansible-playbook --timeout 60 sitio.yml</code></pre>
     title: 'ansible-config — Gestión de configuración',
     objective: 'Aprender a inspeccionar y gestionar la configuración de Ansible usando ansible-config.',
     duration: '45 minutos',
+    objectives: [
+      'Listar la configuración activa y sus fuentes con ansible-config dump',
+      'Identificar qué opciones están modificadas respecto a los defaults',
+      'Generar un ansible.cfg de referencia con ansible-config init',
+      'Configurar las opciones de rendimiento y conexión más importantes',
+    ],
     steps: [
       {
         title: 'Comandos principales de ansible-config',
@@ -251,6 +285,14 @@ become_user = root
 control_path_dir = /tmp/ansible-ssh-%%h-%%p-%%r
 pipelining = True</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">ansible-doc</div>
+              <div class="next-chapter-desc">Consultás la documentación de cualquier módulo o plugin directamente desde la terminal, sin salir del flujo de trabajo.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -261,6 +303,12 @@ pipelining = True</code></pre>
     title: 'ansible-doc — Documentación de módulos',
     objective: 'Usar ansible-doc para consultar documentación de módulos, plugins y roles directamente desde la terminal.',
     duration: '30 minutos',
+    objectives: [
+      'Consultar la documentación completa y los ejemplos de cualquier módulo',
+      'Buscar módulos por palabra clave con ansible-doc -l | grep',
+      'Listar plugins de inventario, callback y connection disponibles',
+      'Usar el modo snippet (-s) para obtener la estructura mínima de un módulo',
+    ],
     steps: [
       {
         title: 'Comandos de ansible-doc',
@@ -293,6 +341,14 @@ ansible-doc -t connection ssh
 ansible-doc -t inventory -l
 ansible-doc -t callback -l</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">ansible-galaxy</div>
+              <div class="next-chapter-desc">Instalás roles y collections de la comunidad, y creás la estructura base de tus propios roles con un solo comando.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -303,6 +359,12 @@ ansible-doc -t callback -l</code></pre>
     title: 'ansible-galaxy — Gestión de roles y collections',
     objective: 'Usar ansible-galaxy para instalar, crear y publicar roles y collections de Ansible Galaxy.',
     duration: '1.5 horas',
+    objectives: [
+      'Instalar roles y collections desde Galaxy usando requirements.yml',
+      'Crear la estructura de un rol con ansible-galaxy role init',
+      'Fijar versiones de dependencias en requirements.yml para reproducibilidad',
+      'Inicializar el namespace de una collection propia',
+    ],
     steps: [
       {
         title: 'Instalar roles y collections',
@@ -372,6 +434,14 @@ ansible-galaxy role init mi-rol
 # Crear un namespace de collection
 ansible-galaxy collection init mi_empresa.mi_collection</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">ansible-vault</div>
+              <div class="next-chapter-desc">Protegés contraseñas, claves API y otros secretos con encriptación AES-256 directamente en el repositorio Git.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -382,6 +452,12 @@ ansible-galaxy collection init mi_empresa.mi_collection</code></pre>
     title: 'ansible-vault — Encriptación de secretos',
     objective: 'Proteger datos sensibles usando ansible-vault para encriptar variables, archivos y valores individuales.',
     duration: '1.5 horas',
+    objectives: [
+      'Encriptar archivos y valores individuales con ansible-vault encrypt y encrypt_string',
+      'Editar archivos vault con ansible-vault edit sin desencriptarlos en disco',
+      'Aplicar el patrón vault_/vars_ para separar secretos de variables normales',
+      'Ejecutar playbooks con secretos vault usando --ask-vault-pass o --vault-password-file',
+    ],
     steps: [
       {
         title: 'Comandos fundamentales de Vault',
@@ -435,6 +511,14 @@ api_key: "{{ vault_api_key }}"</code></pre>
             <span class="box-icon">💡</span>
             <div class="box-content"><strong>Patrón recomendado:</strong> mantener los archivos vault.yml encriptados y vars.yml sin encriptar. El vault solo contiene las variables con prefijo vault_. Esto permite inspeccionar qué variables existen sin revelar sus valores.</div>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">ansible-pull</div>
+              <div class="next-chapter-desc">Invertís el modelo de ejecución: los propios hosts descargan y aplican sus playbooks desde Git, ideal para flotas de miles de máquinas.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -445,6 +529,12 @@ api_key: "{{ vault_api_key }}"</code></pre>
     title: 'ansible-pull — Modelo pull',
     objective: 'Entender el modelo pull de Ansible y cuándo usarlo en lugar del modelo push estándar.',
     duration: '1 hora',
+    objectives: [
+      'Explicar cuándo el modelo pull escala mejor que el modelo push',
+      'Configurar ansible-pull para clonar un repositorio Git y ejecutar un playbook local',
+      'Automatizar ansible-pull como cron job en cada host',
+      'Identificar las limitaciones del modelo pull respecto al feedback inmediato',
+    ],
     steps: [
       {
         title: 'Qué es ansible-pull',
@@ -479,6 +569,14 @@ ansible-pull -U git@github.com:mi-org/config.git --private-key ~/.ssh/deploy_key
 # En /etc/cron.d/ansible-pull:
 # */30 * * * * root ansible-pull -U https://... local.yml >> /var/log/ansible-pull.log 2>&1</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">ansible-inventory</div>
+              <div class="next-chapter-desc">Inspeccionás y depurás inventarios complejos para ver exactamente qué hosts, grupos y variables resuelve Ansible.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -489,6 +587,12 @@ ansible-pull -U git@github.com:mi-org/config.git --private-key ~/.ssh/deploy_key
     title: 'ansible-inventory — Inspección del inventario',
     objective: 'Usar ansible-inventory para inspeccionar y depurar inventarios estáticos y dinámicos.',
     duration: '45 minutos',
+    objectives: [
+      'Listar todos los hosts y grupos en JSON con ansible-inventory --list',
+      'Ver el grafo de grupos con --graph para verificar jerarquías',
+      'Inspeccionar las variables resueltas de un host específico con --host',
+      'Exportar el inventario normalizado en YAML con --list -y',
+    ],
     steps: [
       {
         title: 'Comandos de ansible-inventory',
@@ -516,6 +620,14 @@ ansible-inventory -i inventario/ --list -y
 # Verificar que el inventario es válido
 ansible-inventory -i inventario/ --list > /dev/null && echo "OK"</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">ansible-console</div>
+              <div class="next-chapter-desc">Una consola interactiva para explorar hosts y probar módulos en tiempo real, sin escribir un playbook completo.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -526,6 +638,12 @@ ansible-inventory -i inventario/ --list > /dev/null && echo "OK"</code></pre>
     title: 'ansible-console — Consola interactiva',
     objective: 'Usar ansible-console para ejecutar módulos interactivamente en hosts remotos como si fuera una sesión de shell.',
     duration: '30 minutos',
+    objectives: [
+      'Abrir una sesión de ansible-console contra un grupo de hosts',
+      'Ejecutar módulos interactivamente y cambiar de grupo con cd',
+      'Probar módulos antes de incorporarlos a un playbook',
+      'Usar ansible-console para troubleshooting en múltiples servidores simultáneamente',
+    ],
     steps: [
       {
         title: 'Uso de ansible-console',
@@ -556,6 +674,14 @@ ansible-console servidores_web -b</code></pre>
           <div class="tip-box">
             <span class="box-icon">💡</span>
             <div class="box-content"><strong>Cuándo usarlo:</strong> ansible-console es ideal para explorar el estado de un grupo de hosts, probar módulos antes de escribirlos en un playbook, o realizar tareas de troubleshooting interactivo en múltiples servidores.</div>
+          </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Nivel 5 — Playbooks en Profundidad</div>
+              <div class="next-chapter-desc">Con el tooling dominado, profundizás en la anatomía completa de playbooks: plays, tasks, handlers, tags, loops y blocks.</div>
+            </div>
           </div>
         `
       }

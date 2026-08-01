@@ -9,5 +9,6 @@ export interface ModuleContent {
   title: string;
   objective: string;
   duration?: string;
+  objectives?: string[];
   steps: StepContent[];
 }

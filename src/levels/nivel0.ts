@@ -7,6 +7,13 @@ export const nivel0Modules: ModuleContent[] = [
     title: 'Linux — Fundamentos para Ansible',
     objective: 'Dominar los conceptos de Linux imprescindibles para gestionar hosts remotos con Ansible: sistema de archivos, permisos, servicios y SSH.',
     duration: '3–4 horas',
+    objectives: [
+      'Navegar el sistema de archivos Linux y entender la jerarquía de directorios',
+      'Gestionar permisos de archivos con chmod y chown',
+      'Controlar servicios del sistema con systemctl',
+      'Configurar autenticación SSH sin contraseña',
+      'Ejecutar comandos de diagnóstico para verificar el estado del servidor',
+    ],
     steps: [
       {
         title: '¿Por qué Linux antes de Ansible?',
@@ -335,6 +342,12 @@ uptime             # carga promedio</code></pre>
     title: 'Redes — Fundamentos para Ansible',
     objective: 'Entender los conceptos de red que Ansible usa para conectarse a los hosts remotos: IP, DNS, SSH y herramientas de diagnóstico.',
     duration: '2–3 horas',
+    objectives: [
+      'Interpretar direcciones IP y rangos CIDR en inventarios de Ansible',
+      'Configurar y verificar resolución DNS para hosts administrados',
+      'Diagnosticar problemas de conectividad SSH antes de ejecutar playbooks',
+      'Configurar variables de red en el inventario de Ansible',
+    ],
     steps: [
       {
         title: 'Por qué las redes importan en Ansible',
@@ -536,6 +549,13 @@ retries = 3                   # reintentar conexión 3 veces</code></pre>
     title: 'YAML — El lenguaje de Ansible',
     objective: 'Dominar la sintaxis YAML que Ansible usa en playbooks, inventarios y roles. Entender escalares, listas, diccionarios, multilínea y anchors.',
     duration: '3–4 horas',
+    objectives: [
+      'Escribir escalares, listas y diccionarios YAML correctamente',
+      'Usar bloques multilínea con | y > según el caso de uso',
+      'Aplicar anchors y aliases para evitar repetición en configuraciones',
+      'Detectar y corregir los errores de sintaxis YAML más comunes',
+      'Validar un playbook con yamllint y ansible --syntax-check',
+    ],
     steps: [
       {
         title: 'Por qué Ansible usa YAML',
@@ -931,6 +951,12 @@ ansible-lint mi-playbook.yml</code></pre>
     title: 'Python — Fundamentos para Ansible',
     objective: 'Entender el rol de Python en Ansible: los módulos están escritos en Python, los hosts remotos necesitan Python, y los resultados son JSON.',
     duration: '2 horas',
+    objectives: [
+      'Reconocer los tipos de datos Python que corresponden a YAML y JSON',
+      'Leer un traceback Python para diagnosticar fallos de módulos',
+      'Entender el rol de Python en el control node y en los hosts remotos',
+      'Usar filtros Jinja2 que se derivan de funciones Python',
+    ],
     steps: [
       {
         title: 'Por qué Python es fundamental en Ansible',

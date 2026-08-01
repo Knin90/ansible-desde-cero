@@ -7,6 +7,12 @@ export const nivel5Modules: ModuleContent[] = [
     title: 'Sintaxis YAML completa en contexto Ansible',
     objective: 'Dominar todos los aspectos de YAML que se usan en Ansible: tipos de datos, anclas, referencias, multilínea y errores comunes.',
     duration: '2 horas',
+    objectives: [
+      'Aplicar tipos de datos YAML correctamente en el contexto de playbooks de Ansible',
+      'Elegir entre | y > para bloques multilínea según el caso de uso',
+      'Reutilizar configuración con anchors y aliases en inventarios YAML',
+      'Identificar y corregir los errores YAML más frecuentes en Ansible',
+    ],
     steps: [
       {
         title: 'YAML en Ansible — reglas críticas',
@@ -111,6 +117,14 @@ servidores:
             <span class="box-icon">💡</span>
             <div class="box-content"><strong>Nota:</strong> anchors y aliases son YAML puro, no específicos de Ansible. Son útiles en inventarios YAML y en archivos de variables para evitar repetición, pero no funcionan en playbooks porque Ansible procesa las tareas antes del merge.</div>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Tasks y Play — Anatomía completa</div>
+              <div class="next-chapter-desc">Explorás todos los campos disponibles en un play y en una task, y cómo controlar la ejecución con become, when, register y más.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -121,6 +135,12 @@ servidores:
     title: 'Tasks y Play — Anatomía completa',
     objective: 'Entender todos los campos disponibles en un play y en una task, y cómo interactúan entre sí.',
     duration: '2 horas',
+    objectives: [
+      'Configurar todos los campos clave de un play: hosts, gather_facts, strategy, serial',
+      'Usar register, when, failed_when y changed_when en una task',
+      'Implementar retries con retries, delay y until para tareas que pueden fallar',
+      'Aplicar become en el nivel de play y sobreescribirlo en tareas individuales',
+    ],
     steps: [
       {
         title: 'Anatomía de un Play',
@@ -214,6 +234,14 @@ servidores:
     vars:
       paquete_extra: libssl-dev</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Handlers y Notify</div>
+              <div class="next-chapter-desc">Ejecutás acciones como reiniciar servicios solo cuando algo realmente cambia, evitando interrupciones innecesarias.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -224,6 +252,12 @@ servidores:
     title: 'Handlers y Notify',
     objective: 'Dominar los handlers y el mecanismo notify para ejecutar acciones solo cuando algo cambia.',
     duration: '1.5 horas',
+    objectives: [
+      'Definir handlers y notificarlos desde tareas con notify',
+      'Usar listen para que múltiples handlers respondan al mismo evento',
+      'Forzar la ejecución anticipada de handlers con meta: flush_handlers',
+      'Entender por qué un handler se ejecuta una sola vez aunque lo notifiquen varias tareas',
+    ],
     steps: [
       {
         title: 'Cómo funcionan los handlers',
@@ -320,6 +354,14 @@ handlers:
       name: nginx
       state: restarted</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Tags</div>
+              <div class="next-chapter-desc">Marcás tareas con etiquetas para ejecutar o saltar partes específicas de un playbook sin modificar el código.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -330,6 +372,12 @@ handlers:
     title: 'Tags — Ejecución selectiva',
     objective: 'Usar tags para ejecutar o saltar partes específicas de un playbook.',
     duration: '1 hora',
+    objectives: [
+      'Asignar tags a tareas, plays y roles para ejecución selectiva',
+      'Ejecutar solo tareas de configuración con --tags y saltar deploy con --skip-tags',
+      'Usar los tags especiales always y never para tareas condicionales',
+      'Listar todos los tags disponibles en un playbook con --list-tags',
+    ],
     steps: [
       {
         title: 'Definir y usar tags',
@@ -382,6 +430,14 @@ ansible-playbook sitio.yml --list-tags
 # Tags especiales: always (siempre corre) y never (nunca corre sin pedirlo)
 ansible-playbook sitio.yml --tags never  # Solo corre las marcadas con 'never'</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Loops</div>
+              <div class="next-chapter-desc">Iterás sobre listas y diccionarios para aplicar la misma tarea a múltiples elementos sin duplicar código.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -392,6 +448,12 @@ ansible-playbook sitio.yml --tags never  # Solo corre las marcadas con 'never'</
     title: 'Loops — Iteración de tareas',
     objective: 'Dominar todos los mecanismos de iteración de Ansible: loop, with_*, y loop_control.',
     duration: '2 horas',
+    objectives: [
+      'Iterar tareas sobre listas simples y listas de diccionarios con loop',
+      'Personalizar la etiqueta de salida y el nombre de variable con loop_control',
+      'Convertir diccionarios a listas iterables con el filtro dict2items',
+      'Usar subelements para iterar sobre subestructuras anidadas',
+    ],
     steps: [
       {
         title: 'Loop básico con listas',
@@ -486,6 +548,14 @@ ansible-playbook sitio.yml --tags never  # Solo corre las marcadas con 'never'</
       dest: "/home/{{ item.0.name }}/.config"
     loop: "{{ usuarios | subelements('config_files') }}"</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Blocks, Rescue y Always</div>
+              <div class="next-chapter-desc">Agrupás tareas y agregás manejo de errores con rollback automático usando el patrón try-catch-finally de Ansible.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -496,6 +566,12 @@ ansible-playbook sitio.yml --tags never  # Solo corre las marcadas con 'never'</
     title: 'Blocks, Rescue y Always',
     objective: 'Usar blocks para agrupar tareas, rescue para manejo de errores, y always para limpieza garantizada.',
     duration: '1.5 horas',
+    objectives: [
+      'Agrupar tareas con block para aplicarles when, become y tags comunes',
+      'Implementar rollback automático con rescue ante fallos en el deploy',
+      'Garantizar limpieza de recursos con always independientemente del resultado',
+      'Combinar block/rescue/always para un patrón completo de deploy seguro',
+    ],
     steps: [
       {
         title: 'Blocks — agrupación de tareas',
@@ -579,6 +655,14 @@ ansible-playbook sitio.yml --tags never  # Solo corre las marcadas con 'never'</
           path: /var/log/deploys.log
           line: "{{ ansible_date_time.iso8601 }} - Deploy {{ deploy_version }}: {{ ansible_failed_task.name | default('SUCCESS') }}"</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Imports e Includes</div>
+              <div class="next-chapter-desc">Dividís playbooks grandes en archivos reutilizables con import_tasks (estático) e include_tasks (dinámico).</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -589,6 +673,12 @@ ansible-playbook sitio.yml --tags never  # Solo corre las marcadas con 'never'</
     title: 'Imports e Includes — Modularización de playbooks',
     objective: 'Entender las diferencias entre import_tasks e include_tasks y cuándo usar cada uno.',
     duration: '1.5 horas',
+    objectives: [
+      'Distinguir import_tasks (estático) de include_tasks (dinámico) y sus consecuencias',
+      'Usar include_tasks con variables en el nombre del archivo para configuración condicional',
+      'Aplicar loop en include_tasks para procesar múltiples archivos de tareas',
+      'Elegir correctamente entre import e include según el uso de tags y condicionales',
+    ],
     steps: [
       {
         title: 'Import vs Include — diferencias clave',
@@ -675,6 +765,14 @@ ansible-playbook sitio.yml --tags never  # Solo corre las marcadas con 'never'</
               </tr>
             </tbody>
           </table>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Nivel 6 — Variables</div>
+              <div class="next-chapter-desc">Dominás todas las fuentes de variables de Ansible: tipos, variables registradas, facts, magic variables y su precedencia completa.</div>
+            </div>
+          </div>
         `
       }
     ]

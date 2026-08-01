@@ -1020,3 +1020,79 @@
   font-size: 0.8rem;
   color: var(--color-text-muted);
 }
+
+/* ── Learning objectives ── */
+.learning-objectives {
+  background: rgba(78, 222, 163, 0.05);
+  border: 1px solid rgba(78, 222, 163, 0.18);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.learning-objectives-header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.learning-objectives ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.learning-objectives li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+
+.learning-objectives li::before {
+  content: "✓";
+  color: var(--color-primary);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+
+/* ── Difficulty badge ── */
+.module-difficulty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.difficulty-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.difficulty-dot.med { background: var(--color-secondary); }
+.difficulty-dot.high { background: var(--color-tertiary); }
+.difficulty-dot.expert { background: var(--color-error); }
+
+.welcome-intro {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  max-width: 580px;
+  margin: 0 auto 1rem;
+  line-height: 1.75;
+}

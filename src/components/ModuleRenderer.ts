@@ -183,6 +183,26 @@ export class ModuleRenderer {
     duration: string | undefined,
     content: ModuleContent
   ): void {
+    const difficultyMap: Record<string, { dot: string; label: string }> = {
+      'requisito': { dot: '', label: 'Requisito previo' },
+      'principiante': { dot: '', label: 'Principiante' },
+      'principiante-plus': { dot: 'med', label: 'Principiante+' },
+      'intermedio': { dot: 'med', label: 'Intermedio' },
+      'avanzado': { dot: 'high', label: 'Avanzado' },
+      'experto': { dot: 'expert', label: 'Experto' },
+    };
+    const badgeKey = badge.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const difficulty = difficultyMap[badgeKey] ?? { dot: '', label: badge };
+    const difficultyDotClass = difficulty.dot;
+    const difficultyLabel = difficulty.label;
+
+    const objectivesHtml = content.objectives && content.objectives.length > 0
+      ? `<div class="learning-objectives">
+      <div class="learning-objectives-header">🎯 Al finalizar este módulo podrás</div>
+      <ul>${content.objectives.map(o => `<li>${escapeHtml(o)}</li>`).join('')}</ul>
+    </div>`
+      : '';
+
     const progressDots = content.steps.map((_, i) =>
       `<span class="progress-dot" data-step="${i}"></span>`
     ).join('');
@@ -227,6 +247,7 @@ export class ModuleRenderer {
 
     this.contentEl.innerHTML = `
       ${breadcrumbHtml}
+      ${objectivesHtml}
       <div class="module-hero">
         <div class="module-hero-bg-glow"></div>
         <div class="module-tags">
@@ -235,6 +256,10 @@ export class ModuleRenderer {
             ${escapeHtml(badge)}
           </span>
           <span class="module-level-label">${escapeHtml(levelTitle)} — ${escapeHtml(levelSubtitle)}</span>
+          <span class="module-difficulty">
+            <span class="difficulty-dot ${difficultyDotClass}"></span>
+            ${difficultyLabel}
+          </span>
         </div>
         <h2 class="module-title">${escapeHtml(content.title)}</h2>
         <p class="module-objective">${escapeHtml(content.objective)}</p>
@@ -316,6 +341,7 @@ export class ModuleRenderer {
     this.contentEl.innerHTML = `
       <div class="welcome-screen">
         <h2>Bienvenido al Curso Completo de <span>Ansible</span></h2>
+        <p class="welcome-intro">Este curso está diseñado para llevarte desde los conceptos fundamentales de Linux y YAML hasta la automatización de infraestructuras completas con Ansible, siguiendo una ruta de aprendizaje progresiva y orientada a la práctica.</p>
         <p>Desde los fundamentos de Linux y YAML hasta el desarrollo de módulos y plugins propios. 23 niveles, decenas de módulos con diagramas interactivos y ejemplos anotados.</p>
         <div class="welcome-stats-card">
           <div class="wsc-item"><span class="wsc-icon">📚</span><span class="wsc-val">23</span><span class="wsc-label">Niveles</span></div>

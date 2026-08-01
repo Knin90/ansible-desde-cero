@@ -7,6 +7,12 @@ export const nivel3Modules: ModuleContent[] = [
     title: 'Inventario estático INI',
     objective: 'Dominar el formato INI para definir hosts, grupos, variables de host y variables de grupo en inventarios estáticos.',
     duration: '1.5 horas',
+    objectives: [
+      'Crear un inventario INI con hosts, grupos y grupos de grupos',
+      'Definir variables inline de host y variables de grupo con :vars',
+      'Usar rangos numéricos y alfabéticos para grupos de hosts regulares',
+      'Verificar el inventario resultante con ansible-inventory --graph',
+    ],
     steps: [
       {
         title: 'Formato INI — estructura básica',
@@ -75,6 +81,14 @@ db-[a:c].empresa.com
 # Con paso de 2: kafka01, kafka03, kafka05
 kafka[01:05:2].empresa.com</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Inventario estático YAML</div>
+              <div class="next-chapter-desc">El formato YAML permite variables complejas (listas, diccionarios) imposibles en INI, y es más claro para inventarios grandes.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -85,6 +99,12 @@ kafka[01:05:2].empresa.com</code></pre>
     title: 'Inventario estático YAML',
     objective: 'Aprender el formato YAML para inventarios, más expresivo y estructurado que INI para inventarios complejos.',
     duration: '1 hora',
+    objectives: [
+      'Escribir un inventario YAML equivalente a un inventario INI existente',
+      'Definir variables complejas (listas y diccionarios) en el inventario YAML',
+      'Estructurar grupos padre e hijo con children en YAML',
+      'Elegir entre formato INI y YAML según la complejidad del proyecto',
+    ],
     steps: [
       {
         title: 'Formato YAML — estructura equivalente a INI',
@@ -152,6 +172,14 @@ kafka[01:05:2].empresa.com</code></pre>
             - cert: /etc/ssl/certs/app.crt
               key: /etc/ssl/private/app.key</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Inventario dinámico</div>
+              <div class="next-chapter-desc">En entornos cloud donde los hosts cambian constantemente, el inventario dinámico genera la lista automáticamente desde AWS, Azure o GCP.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -162,6 +190,12 @@ kafka[01:05:2].empresa.com</code></pre>
     title: 'Inventario dinámico',
     objective: 'Entender cómo funciona el inventario dinámico y cómo usar inventory plugins para obtener hosts automáticamente de proveedores cloud.',
     duration: '2 horas',
+    objectives: [
+      'Configurar el inventory plugin de AWS EC2 para obtener hosts automáticamente',
+      'Agrupar hosts dinámicos por tags con keyed_groups',
+      'Combinar inventarios estáticos y dinámicos en un único directorio',
+      'Depurar el resultado del plugin con ansible-inventory --list',
+    ],
     steps: [
       {
         title: 'Qué es y por qué usarlo',
@@ -228,6 +262,14 @@ inventario/
 # Ansible combina todos automáticamente
 ansible-playbook -i inventario/ sitio.yml</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Variables de inventario</div>
+              <div class="next-chapter-desc">Organizás las variables de hosts y grupos en los directorios host_vars y group_vars para mantener el inventario limpio y escalable.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -238,6 +280,12 @@ ansible-playbook -i inventario/ sitio.yml</code></pre>
     title: 'Variables de inventario — host_vars y group_vars',
     objective: 'Dominar la organización de variables de inventario usando los directorios host_vars y group_vars.',
     duration: '1.5 horas',
+    objectives: [
+      'Estructurar variables en group_vars/all.yml, group_vars/<grupo>.yml y host_vars/',
+      'Separar variables normales de variables encriptadas con vault en archivos distintos',
+      'Sobrescribir variables de grupo con variables de host para casos específicos',
+      'Verificar el valor final de una variable con ansible -m debug',
+    ],
     steps: [
       {
         title: 'Directorios host_vars y group_vars',
@@ -283,6 +331,14 @@ nginx_worker_processes: 4    # Este servidor tiene más CPUs
 backup_enabled: true
 backup_schedule: "0 2 * * *"</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Precedencia de variables</div>
+              <div class="next-chapter-desc">Cuando la misma variable está definida en varios lugares, Ansible aplica una jerarquía de 16 niveles para decidir qué valor gana.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -293,6 +349,12 @@ backup_schedule: "0 2 * * *"</code></pre>
     title: 'Precedencia de variables en el inventario',
     objective: 'Entender el orden de precedencia completo de las variables de inventario para predecir qué valor ganará cuando hay conflictos.',
     duration: '1 hora',
+    objectives: [
+      'Enumerar los 16 niveles de precedencia de variables de Ansible en orden',
+      'Predecir qué valor ganará cuando la misma variable está en group_vars y host_vars',
+      'Usar -e para forzar un valor por encima de cualquier otra fuente',
+      'Depurar conflictos de variables con ansible -m debug -a "var=nombre_var"',
+    ],
     steps: [
       {
         title: 'Precedencia completa (menor a mayor)',
@@ -335,6 +397,14 @@ ansible-playbook sitio.yml -e "http_port=9090"
 
 # Ver el valor final de una variable específica
 ansible -i inventario/ web1.empresa.com -m debug -a "var=http_port"</code></pre>
+          </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Nivel 4 — Comandos CLI</div>
+              <div class="next-chapter-desc">Con el inventario dominado, explorás todas las herramientas de línea de comandos: ansible, ansible-playbook, ansible-vault y más.</div>
+            </div>
           </div>
         `
       }

@@ -7,6 +7,12 @@ export const nivel2Modules: ModuleContent[] = [
     title: 'Flujo interno completo de Ansible',
     objective: 'Entender los 13 pasos que ocurren internamente desde que ejecutás ansible-playbook hasta ver el resultado en pantalla.',
     duration: '2 horas',
+    objectives: [
+      'Describir los 13 pasos del flujo interno de ansible-playbook en orden',
+      'Identificar en qué paso falla un playbook según el mensaje de error',
+      'Explicar qué hace el Strategy Plugin y cómo afecta la ejecución paralela',
+      'Usar ansible-playbook --syntax-check y ansible-inventory para depurar etapas tempranas',
+    ],
     steps: [
       {
         title: 'Por qué importa conocer el flujo interno',
@@ -102,6 +108,14 @@ PLAY RECAP ******************************************
 web1.ejemplo.com    : ok=3  changed=2  unreachable=0  failed=0
 web2.ejemplo.com    : ok=2  changed=1  unreachable=0  failed=0</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Inventory Engine</div>
+              <div class="next-chapter-desc">Profundizás en cómo Ansible construye el mapa de hosts y grupos a partir de múltiples fuentes de inventario.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -112,6 +126,12 @@ web2.ejemplo.com    : ok=2  changed=1  unreachable=0  failed=0</code></pre>
     title: 'Inventory Engine — Cómo Ansible resuelve los hosts',
     objective: 'Entender cómo el Inventory Engine parsea, resuelve y combina múltiples fuentes de inventario para construir el contexto completo de cada host.',
     duration: '1.5 horas',
+    objectives: [
+      'Describir cómo el Inventory Engine construye el grafo de hosts y grupos',
+      'Combinar múltiples fuentes de inventario (estático + cloud) en un solo directorio',
+      'Inspeccionar variables resueltas de un host con ansible-inventory',
+      'Entender el orden de merging de variables entre group_vars y host_vars',
+    ],
     steps: [
       {
         title: 'Qué es el Inventory Engine',
@@ -166,6 +186,14 @@ ansible -i inventario/ web1.ejemplo.com -m debug -a "var=hostvars['web1.ejemplo.
 # Ver el inventario en formato JSON
 ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Strategy Plugin</div>
+              <div class="next-chapter-desc">Controlás cómo Ansible distribuye la ejecución entre múltiples hosts: linear, free y debug.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -176,6 +204,12 @@ ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
     title: 'Strategy Plugin — Control de ejecución',
     objective: 'Comprender cómo el Strategy Plugin controla el orden y paralelismo de ejecución de tareas en múltiples hosts.',
     duration: '1 hora',
+    objectives: [
+      'Distinguir el comportamiento de las estrategias linear, free y debug',
+      'Elegir la estrategia correcta según el tipo de playbook y riesgo de fallo',
+      'Usar la estrategia debug para inspeccionar variables en tareas fallidas',
+      'Configurar serial para rolling updates controlados',
+    ],
     steps: [
       {
         title: 'Strategy linear (default)',
@@ -207,6 +241,14 @@ ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
     - name: Task problemática
       ansible.builtin.command: mi-script-raro.sh</code></pre>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Action Plugins</div>
+              <div class="next-chapter-desc">Descubrís qué parte de la lógica se ejecuta localmente y qué parte va al host remoto, el corazón de la extensibilidad de Ansible.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -217,6 +259,12 @@ ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
     title: 'Action Plugins — Lógica local vs remota',
     objective: 'Entender qué son los Action Plugins y cómo deciden dónde se ejecuta la lógica de cada módulo.',
     duration: '1 hora',
+    objectives: [
+      'Explicar la diferencia entre un módulo y su Action Plugin asociado',
+      'Identificar qué módulos ejecutan lógica en el control node (template, copy, fetch)',
+      'Entender por qué template renderiza Jinja2 localmente antes de transferir el resultado',
+      'Reconocer los Action Plugins como el principal punto de extensibilidad de Ansible',
+    ],
     steps: [
       {
         title: 'Qué es un Action Plugin',
@@ -236,6 +284,14 @@ ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
             <span class="box-icon">💡</span>
             <div class="box-content"><strong>Implicación práctica:</strong> los Action Plugins son el punto de extensión más poderoso de Ansible. Podés crear módulos que hagan cualquier cosa en el nodo de control antes o después de la ejecución remota.</div>
           </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Callback Plugins</div>
+              <div class="next-chapter-desc">Controlás cómo Ansible formatea y envía la salida: terminal, JSON, Slack, correo y métricas.</div>
+            </div>
+          </div>
         `
       }
     ]
@@ -246,6 +302,12 @@ ansible-inventory -i inventario/ --host web1.ejemplo.com</code></pre>
     title: 'Callback Plugins — Control de la salida',
     objective: 'Aprender cómo los Callback Plugins controlan la salida de Ansible y cómo usarlos para logging, notificaciones y métricas.',
     duration: '45 minutos',
+    objectives: [
+      'Configurar stdout_callback en ansible.cfg para cambiar el formato de salida',
+      'Usar el callback profile_tasks para identificar las tareas más lentas',
+      'Parsear la salida JSON de Ansible con jq para integraciones externas',
+      'Entender los hooks de ciclo de vida que expone el sistema de callbacks',
+    ],
     steps: [
       {
         title: 'Qué son los Callback Plugins',
@@ -269,6 +331,14 @@ callback_enabled = timer, profile_tasks
 # Alternativa: usar JSON para parsear con jq
 # stdout_callback = json
 # ansible-playbook sitio.yml | jq '.plays[].tasks[].hosts'</code></pre>
+          </div>
+          <div class="next-chapter-box">
+            <div class="next-chapter-arrow">→</div>
+            <div>
+              <div class="next-chapter-label">A continuación</div>
+              <div class="next-chapter-title">Nivel 3 — Inventarios</div>
+              <div class="next-chapter-desc">Con la arquitectura interna clara, ahora dominás la definición de hosts: inventarios INI, YAML, dinámicos y variables de inventario.</div>
+            </div>
           </div>
         `
       }

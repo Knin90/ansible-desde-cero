@@ -7,6 +7,11 @@ export const nivel1Modules: ModuleContent[] = [
     title: 'Historia y contexto de Ansible',
     objective: 'Entender por qué Ansible fue creado, cómo evolucionó, y por qué se convirtió en la herramienta de automatización más popular del mundo.',
     duration: '1 hora',
+    objectives: [
+      'Explicar el problema que Ansible resolvió en 2012 comparado con Puppet y Chef',
+      'Describir los hitos clave de la evolución de Ansible hasta la actualidad',
+      'Identificar cuándo usar Ansible y cuándo preferir Terraform o Kubernetes',
+    ],
     steps: [
       {
         title: 'El problema que Ansible resolvió',
@@ -242,6 +247,12 @@ export const nivel1Modules: ModuleContent[] = [
     title: 'Arquitectura general de Ansible',
     objective: 'Entender los componentes principales de Ansible: control node, managed nodes, inventario, playbooks y el rol de SSH y Python.',
     duration: '1.5 horas',
+    objectives: [
+      'Identificar los cinco componentes principales de Ansible y su función',
+      'Describir el flujo completo de ejecución de un módulo desde el control node',
+      'Configurar el intérprete Python en el inventario según el sistema operativo',
+      'Explicar por qué Ansible es agentless y qué implica para los managed nodes',
+    ],
     steps: [
       {
         title: 'Los cinco componentes principales',
@@ -558,6 +569,12 @@ ansible all -m ping -vvv
     title: 'Características clave de Ansible',
     objective: 'Comprender en profundidad las cinco características que diferencian a Ansible: agentless, idempotencia, declarativo, push model, y SSH nativo.',
     duration: '1.5 horas',
+    objectives: [
+      'Verificar la idempotencia ejecutando el mismo playbook dos veces',
+      'Distinguir entre código imperativo y declarativo con ejemplos concretos',
+      'Explicar las ventajas del modelo push sobre el modelo pull',
+      'Identificar casos donde Ansible no es la herramienta más apropiada',
+    ],
     steps: [
       {
         title: 'Las cinco características fundamentales',
@@ -832,6 +849,12 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=60s
     title: 'Instalación de Ansible',
     objective: 'Instalar Ansible en el control node (Linux, macOS, WSL) y verificar la instalación con ansible --version.',
     duration: '30 minutos',
+    objectives: [
+      'Instalar Ansible en Linux, macOS o WSL usando pip',
+      'Verificar la instalación con ansible --version e interpretar cada campo',
+      'Crear un ansible.cfg básico con inventario y usuario SSH configurados',
+      'Ejecutar ansible localhost -m ping y obtener SUCCESS',
+    ],
     steps: [
       {
         title: 'Requisitos previos',
@@ -1050,6 +1073,12 @@ ansible all -i inventory/hosts.ini -m ping -k    # -k pide contraseña SSH</code
     title: 'Tu primer comando Ansible',
     objective: 'Entender en profundidad qué sucede cuando ejecutás ansible all -m ping y cómo interpretar el resultado.',
     duration: '1 hora',
+    objectives: [
+      'Diseccionar cada parte del comando ansible all -m ping',
+      'Interpretar el resultado JSON de un módulo exitoso y de uno fallido',
+      'Usar los niveles de verbose (-v, -vv, -vvv) para diagnosticar problemas',
+      'Ejecutar comandos ad-hoc con diferentes módulos y patrones de hosts',
+    ],
     steps: [
       {
         title: 'El comando más simple',

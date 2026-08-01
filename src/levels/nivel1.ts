@@ -12,6 +12,7 @@ export const nivel1Modules: ModuleContent[] = [
       'Describir los hitos clave de la evolución de Ansible hasta la actualidad',
       'Identificar cuándo usar Ansible y cuándo preferir Terraform o Kubernetes',
     ],
+    prerequisites: ['Haber completado el Nivel 0 completo (Linux, Redes, YAML y Python)'],
     steps: [
       {
         title: 'El problema que Ansible resolvió',
@@ -239,7 +240,38 @@ export const nivel1Modules: ModuleContent[] = [
           </div>
         `
       }
-    ]
+    ],
+    quiz: [
+      {
+        question: '¿En qué año fue creado Ansible y por quién?',
+        options: ['2010, Mitchell Hashimoto', '2012, Michael DeHaan', '2014, Red Hat', '2009, Luke Kanies'],
+        correctIndex: 1,
+        explanation: 'Ansible fue creado por Michael DeHaan en 2012. Antes había trabajado en Cobbler y Func, y quería una herramienta de automatización simple, agentless y basada en SSH.',
+      },
+      {
+        question: '¿Qué diferencia principal tiene Ansible respecto a Puppet y Chef?',
+        options: [
+          'Ansible es más rápido en todos los casos',
+          'Ansible usa JSON en lugar de YAML',
+          'Ansible no requiere instalar agentes en los servidores gestionados',
+          'Ansible solo funciona con servidores Linux',
+        ],
+        correctIndex: 2,
+        explanation: 'La principal ventaja de Ansible es ser "agentless" — no necesita ningún software adicional en los hosts gestionados. Solo necesita SSH y Python, que ya vienen en todos los servidores Linux.',
+      },
+      {
+        question: '¿Cuál es la relación correcta entre Ansible y Terraform?',
+        options: [
+          'Son competidores directos — usar uno excluye al otro',
+          'Terraform reemplazó a Ansible en 2019',
+          'Terraform crea la infraestructura; Ansible la configura',
+          'Ansible incluye Terraform como dependencia',
+        ],
+        correctIndex: 2,
+        explanation: 'Se complementan perfectamente: Terraform provee la infraestructura (crea VMs, redes, etc.) y Ansible la configura (instala software, ajusta archivos). Muchos equipos usan ambos juntos.',
+      },
+    ],
+    realWorldCase: 'Spotify, la NASA y Deutsche Telekom usan Ansible para gestionar miles de servidores. En Spotify, Ansible automatiza el despliegue de microservicios. En la NASA, gestiona configuraciones de infraestructura crítica. Lo que aprendés aquí es exactamente lo que usan estas empresas en producción.',
   },
   {
     levelId: 1,
@@ -253,6 +285,7 @@ export const nivel1Modules: ModuleContent[] = [
       'Configurar el intérprete Python en el inventario según el sistema operativo',
       'Explicar por qué Ansible es agentless y qué implica para los managed nodes',
     ],
+    prerequisites: ['Historia y contexto de Ansible (Módulo 1 del Nivel 1)'],
     steps: [
       {
         title: 'Los cinco componentes principales',
@@ -561,7 +594,43 @@ ansible all -m ping -vvv
           </div>
         `
       }
-    ]
+    ],
+    quiz: [
+      {
+        question: '¿Cuáles son los 5 componentes principales de Ansible?',
+        options: [
+          'Control Node, Agente, Servidor, Base de datos, Dashboard',
+          'Control Node, Managed Nodes, Inventory, Playbook, SSH + Python',
+          'Master, Worker, Queue, Storage, Monitor',
+          'Controller, Runner, Parser, Executor, Logger',
+        ],
+        correctIndex: 1,
+        explanation: 'Los 5 componentes son: Control Node (tu máquina con Ansible), Managed Nodes (los servidores), Inventory (la lista de hosts), Playbook (las instrucciones en YAML), y SSH + Python (el transporte y ejecución).',
+      },
+      {
+        question: '¿Qué ocurre en el host remoto cuando Ansible ejecuta una tarea?',
+        options: [
+          'Ansible instala un agente permanente que espera órdenes',
+          'Ansible copia un módulo Python a /tmp, lo ejecuta y lo borra',
+          'El host remoto descarga el playbook de Internet',
+          'Ansible modifica el registro del sistema operativo',
+        ],
+        correctIndex: 1,
+        explanation: 'Ansible copia el módulo Python al /tmp del host remoto, lo ejecuta (obteniendo un resultado JSON), y luego lo borra. El host queda exactamente igual que antes excepto por el cambio que hizo el módulo.',
+      },
+      {
+        question: '¿Por qué Windows NO puede ser Control Node de Ansible?',
+        options: [
+          'Windows no soporta Python',
+          'Ansible no tiene versión para Windows',
+          'El intérprete de Python no es compatible con Windows',
+          'Ansible no soporta OpenSSH nativo en Windows como control node',
+        ],
+        correctIndex: 3,
+        explanation: 'Ansible requiere un entorno Unix-like como Control Node porque depende de OpenSSH y del sistema de archivos Unix. En Windows, se usa WSL (Windows Subsystem for Linux). Los Managed Nodes sí pueden ser Windows (usando WinRM).',
+      },
+    ],
+    realWorldCase: 'Una empresa de hosting gestiona 3.000 servidores con un único Control Node Ansible. Cuando necesitan aplicar un parche de seguridad, ejecutan un playbook que alcanza todos los servidores en paralelo (forks). Lo que manualmente tomaría semanas se completa en horas — y es idempotente, por lo que pueden repetirlo sin riesgo.',
   },
   {
     levelId: 1,

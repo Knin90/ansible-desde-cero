@@ -14,6 +14,10 @@ export const nivel0Modules: ModuleContent[] = [
       'Configurar autenticación SSH sin contraseña',
       'Ejecutar comandos de diagnóstico para verificar el estado del servidor',
     ],
+    prerequisites: [
+      'Acceso a una terminal (Linux, macOS, o WSL en Windows)',
+      'Curiosidad sobre cómo funcionan los servidores',
+    ],
     steps: [
       {
         title: '¿Por qué Linux antes de Ansible?',
@@ -334,7 +338,33 @@ uptime             # carga promedio</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    quiz: [
+      {
+        question: '¿Qué directorio usa Ansible para copiar y ejecutar módulos Python en el host remoto?',
+        options: ['/home', '/tmp', '/usr/bin', '/etc'],
+        correctIndex: 1,
+        explanation: 'Ansible copia los módulos Python a /tmp del host remoto, los ejecuta, y luego los borra. Por eso /tmp debe ser escribible.',
+      },
+      {
+        question: '¿Qué equivalente tiene "systemctl start nginx" en Ansible?',
+        options: [
+          'ansible.builtin.shell: systemctl start nginx',
+          'ansible.builtin.service: name=nginx state=started',
+          'ansible.builtin.command: start nginx',
+          'ansible.builtin.apt: name=nginx state=started',
+        ],
+        correctIndex: 1,
+        explanation: 'El módulo ansible.builtin.service gestiona servicios de forma declarativa e idempotente. Escribís el estado deseado (started), no el comando.',
+      },
+      {
+        question: '¿Qué protocolo usa Ansible para conectarse a los hosts remotos?',
+        options: ['HTTP', 'RDP', 'SSH', 'Telnet'],
+        correctIndex: 2,
+        explanation: 'Ansible usa SSH (Secure Shell) para conectarse a los hosts remotos. Esto es lo que lo hace "agentless" — SSH ya está instalado en todos los servidores Linux.',
+      },
+    ],
+    realWorldCase: 'Una empresa con 200 servidores web usa Ansible para configurar nginx en todos ellos de forma simultánea. Lo que antes tomaba días de trabajo manual ahora se ejecuta en minutos con un solo comando. Los mismos comandos Linux que aprendiste aquí son los que Ansible automatiza.',
   },
   {
     levelId: 0,
@@ -348,6 +378,7 @@ uptime             # carga promedio</code></pre>
       'Diagnosticar problemas de conectividad SSH antes de ejecutar playbooks',
       'Configurar variables de red en el inventario de Ansible',
     ],
+    prerequisites: ['Haber completado el módulo de Linux (Módulo 1 del Nivel 0)'],
     steps: [
       {
         title: 'Por qué las redes importan en Ansible',
@@ -541,7 +572,33 @@ retries = 3                   # reintentar conexión 3 veces</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    quiz: [
+      {
+        question: '¿Cuál es la causa más común de que Ansible no pueda conectarse a un host?',
+        options: [
+          'El playbook tiene errores de sintaxis YAML',
+          'SSH está bloqueado o el host no es alcanzable',
+          'Ansible no está instalado en el host remoto',
+          'La versión de Python no es compatible',
+        ],
+        correctIndex: 1,
+        explanation: 'Si el host no es alcanzable por red o el puerto 22 está bloqueado por el firewall, Ansible fallará antes de ejecutar cualquier tarea. Siempre verificá la conectividad SSH manualmente antes de culpar a Ansible.',
+      },
+      {
+        question: '¿En qué archivo podés agregar un host con su IP para que resuelva localmente sin DNS?',
+        options: ['/etc/resolv.conf', '/etc/hosts', '/etc/network/interfaces', '/etc/ssh/sshd_config'],
+        correctIndex: 1,
+        explanation: 'El archivo /etc/hosts permite resolver nombres de host a IPs sin necesitar un servidor DNS. Ansible busca aquí antes que en DNS real. Muy útil en laboratorios.',
+      },
+      {
+        question: '¿Qué comando de Ansible confirma que la conectividad SSH y Python funcionan correctamente?',
+        options: ['ansible all -m command -a "ping"', 'ansible all -m ping', 'ansible-playbook --check', 'ansible all --test'],
+        correctIndex: 1,
+        explanation: 'ansible all -m ping verifica toda la cadena: conectividad de red → SSH → Python instalado en el host remoto. Si responde "pong", todo está funcionando.',
+      },
+    ],
+    realWorldCase: 'Un equipo de DevOps en una empresa de e-commerce usa Ansible para gestionar 50 servidores distribuidos en 3 regiones. Antes de cada despliegue, verifican automáticamente la conectividad con ansible all -m ping. Si algún servidor falla, lo detectan antes de empezar el deploy — no durante.',
   },
   {
     levelId: 0,

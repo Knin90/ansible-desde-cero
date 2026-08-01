@@ -1,4 +1,5 @@
 import type { ModuleContent } from '../levels/types';
+import { applyGlossary } from '../glossary';
 import { levelRegistry } from '../levels/registry';
 import { getModuleContent } from './contentRouter';
 import { sanitizeBadge } from '../utils/sanitizeBadge';
@@ -63,6 +64,36 @@ export class ModuleRenderer {
       const codeEl = wrapper?.querySelector('code');
       const text = codeEl?.textContent ?? '';
       this.handleCopy(copyBtn, text);
+      return;
+    }
+
+    // Quiz option click
+    const quizOption = target.closest('.quiz-option') as HTMLElement | null;
+    if (quizOption) {
+      const questionEl = quizOption.closest('.quiz-question') as HTMLElement | null;
+      if (!questionEl) return;
+
+      // Prevent re-answering
+      if (questionEl.dataset['answered'] === 'true') return;
+      questionEl.dataset['answered'] = 'true';
+
+      const correctIndex = parseInt(questionEl.dataset['correct'] ?? '0', 10);
+      const clickedIndex = parseInt(quizOption.dataset['index'] ?? '-1', 10);
+
+      // Disable all options and mark correct/wrong
+      questionEl.querySelectorAll('.quiz-option').forEach((opt, idx) => {
+        const btn = opt as HTMLButtonElement;
+        btn.disabled = true;
+        if (idx === correctIndex) {
+          btn.classList.add('quiz-option--correct');
+        } else if (idx === clickedIndex) {
+          btn.classList.add('quiz-option--wrong');
+        }
+      });
+
+      // Show explanation
+      const explanation = questionEl.querySelector('.quiz-explanation') as HTMLElement | null;
+      if (explanation) explanation.classList.remove('hidden');
       return;
     }
 
@@ -147,6 +178,7 @@ export class ModuleRenderer {
     document.getElementById('content')?.scrollTo({ top: 0, behavior: 'instant' });
     highlightAll();
     this.initScrollReveal();
+    applyGlossary(this.contentEl);
   }
 
   // Walk .code-block-titlebar elements and inject decorative dots + copy buttons
@@ -196,10 +228,43 @@ export class ModuleRenderer {
     const difficultyDotClass = difficulty.dot;
     const difficultyLabel = difficulty.label;
 
+    const prerequisitesHtml = content.prerequisites && content.prerequisites.length > 0
+      ? `<div class="prerequisites-box">
+      <div class="prerequisites-header">⚠️ Requisitos previos</div>
+      <ul>${content.prerequisites.map(p => `<li>✓ ${escapeHtml(p)}</li>`).join('')}</ul>
+    </div>`
+      : '';
+
     const objectivesHtml = content.objectives && content.objectives.length > 0
       ? `<div class="learning-objectives">
       <div class="learning-objectives-header">🎯 Al finalizar este módulo podrás</div>
       <ul>${content.objectives.map(o => `<li>${escapeHtml(o)}</li>`).join('')}</ul>
+    </div>`
+      : '';
+
+    const durationHtml = content.duration
+      ? `<span class="module-duration-tag">⏱ ${escapeHtml(content.duration)}</span>`
+      : '';
+
+    const quizHtml = content.quiz && content.quiz.length > 0
+      ? `<div class="module-quiz">
+      <div class="quiz-header">📝 Verificá tu comprensión</div>
+      ${content.quiz.map((q, qi) => `
+        <div class="quiz-question" data-correct="${q.correctIndex}">
+          <div class="quiz-q-text">Pregunta ${qi + 1}: ${escapeHtml(q.question)}</div>
+          <div class="quiz-options">
+            ${q.options.map((opt, oi) => `<button class="quiz-option" data-index="${oi}">○ ${escapeHtml(opt)}</button>`).join('')}
+          </div>
+          <div class="quiz-explanation hidden">💡 ${escapeHtml(q.explanation)}</div>
+        </div>
+      `).join('')}
+    </div>`
+      : '';
+
+    const realWorldHtml = content.realWorldCase
+      ? `<div class="real-world-box">
+      <div class="real-world-header">🏢 ¿Cómo se usa esto en una empresa?</div>
+      <p>${escapeHtml(content.realWorldCase)}</p>
     </div>`
       : '';
 
@@ -247,6 +312,7 @@ export class ModuleRenderer {
 
     this.contentEl.innerHTML = `
       ${breadcrumbHtml}
+      ${prerequisitesHtml}
       ${objectivesHtml}
       <div class="module-hero">
         <div class="module-hero-bg-glow"></div>
@@ -260,6 +326,7 @@ export class ModuleRenderer {
             <span class="difficulty-dot ${difficultyDotClass}"></span>
             ${difficultyLabel}
           </span>
+          ${durationHtml}
         </div>
         <h2 class="module-title">${escapeHtml(content.title)}</h2>
         <p class="module-objective">${escapeHtml(content.objective)}</p>
@@ -270,6 +337,8 @@ export class ModuleRenderer {
       </div>
       <div id="diagram-slot"></div>
       <div class="module-steps">${stepsHtml}</div>
+      ${quizHtml}
+      ${realWorldHtml}
       <nav class="module-nav">
         <button class="nav-btn prev-btn" ${prevBtnAttrs}>
           <span class="nav-btn-icon">${Icons.arrowLeft}</span>

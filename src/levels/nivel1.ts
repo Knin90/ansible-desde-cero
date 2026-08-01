@@ -1134,7 +1134,24 @@ ansible all -i inventory/hosts.ini -m ping -k    # -k pide contraseña SSH</code
           </div>
         `
       }
-    ]
+    ],
+    troubleshooting: [
+      {
+        error: 'bash: ansible: command not found',
+        cause: 'Ansible se instaló con pip --user pero ~/.local/bin no está en el PATH.',
+        fix: 'echo \'export PATH="$HOME/.local/bin:$PATH"\' >> ~/.bashrc && source ~/.bashrc',
+      },
+      {
+        error: 'ERROR! No module named ansible / ModuleNotFoundError: No module named ansible',
+        cause: 'El entorno virtual que tiene Ansible no está activado, o se instaló con un Python diferente al que está en PATH.',
+        fix: 'source ansible-env/bin/activate  —  luego verificá: which ansible && ansible --version',
+      },
+      {
+        error: 'WARNING: ansible-core requires the locale encoding to be UTF-8',
+        cause: 'La configuración regional del sistema no tiene UTF-8 como encoding por defecto.',
+        fix: 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8  —  agregalo a ~/.bashrc para que persista.',
+      },
+    ],
   },
   {
     levelId: 1,
@@ -1434,6 +1451,23 @@ ansible all -m ping --limit web1.ejemplo.com</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    troubleshooting: [
+      {
+        error: 'UNREACHABLE! Failed to connect to the host via ssh: Connection refused',
+        cause: 'SSH no está corriendo en el host remoto, o el firewall bloquea el puerto 22.',
+        fix: 'Verificá manualmente: ping host && nc -z host 22 && ssh usuario@host  —  si alguno falla, ese es el problema, no Ansible.',
+      },
+      {
+        error: 'WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!',
+        cause: 'La clave SSH del servidor cambió (reinstalación del OS, nueva VM con la misma IP). SSH bloquea por seguridad.',
+        fix: 'ssh-keygen -R hostname  —  para borrar la clave antigua. En laboratorio: host_key_checking = False en ansible.cfg.',
+      },
+      {
+        error: 'FAILED! => {"msg": "Missing sudo password"}',
+        cause: 'La tarea usa become: true pero el usuario no tiene configurado sudo sin contraseña.',
+        fix: 'Ejecutá con: ansible-playbook playbook.yml -K  (pide contraseña de sudo). En producción: configurá NOPASSWD en /etc/sudoers.',
+      },
+    ],
   }
 ];

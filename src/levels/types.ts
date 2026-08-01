@@ -10,6 +10,12 @@ export interface QuizQuestion {
   explanation: string;
 }
 
+export interface TroubleshootingItem {
+  error: string;
+  cause: string;
+  fix: string;
+}
+
 export interface ModuleContent {
   levelId: number;
   moduleId: number;
@@ -21,4 +27,5 @@ export interface ModuleContent {
   steps: StepContent[];
   quiz?: QuizQuestion[];
   realWorldCase?: string;
+  troubleshooting?: TroubleshootingItem[];
 }

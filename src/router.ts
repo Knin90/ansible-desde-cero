@@ -13,12 +13,26 @@ export interface RouteRef {
   available: boolean;
 }
 
+export const SPECIAL_PAGES: Record<string, Route> = {
+  'cheat-sheet': { level: -2, module: 0 },
+  'snippets': { level: -3, module: 0 },
+};
+
 export function getCurrentRoute(): Route {
   const hash = window.location.hash.replace('#', '');
+
+  if (SPECIAL_PAGES[hash]) {
+    return SPECIAL_PAGES[hash];
+  }
+
   const [levelPart, modulePart] = hash.split('/');
   const level = parseInt(levelPart?.replace('nivel-', '') ?? '0');
   const module = parseInt(modulePart?.replace('modulo-', '') ?? '1');
   return { level: isNaN(level) ? 0 : level, module: isNaN(module) ? 1 : module };
+}
+
+export function navigateToPage(slug: string): void {
+  window.location.hash = slug;
 }
 
 export function navigate(level: number, module: number): void {

@@ -365,6 +365,23 @@ uptime             # carga promedio</code></pre>
       },
     ],
     realWorldCase: 'Una empresa con 200 servidores web usa Ansible para configurar nginx en todos ellos de forma simultánea. Lo que antes tomaba días de trabajo manual ahora se ejecuta en minutos con un solo comando. Los mismos comandos Linux que aprendiste aquí son los que Ansible automatiza.',
+    troubleshooting: [
+      {
+        error: 'Permission denied (publickey,gssapi-keyex,gssapi-with-mic)',
+        cause: 'La clave pública SSH no está en authorized_keys del servidor, o el usuario no existe en el host remoto.',
+        fix: 'ssh-copy-id -i ~/.ssh/id_ed25519.pub usuario@servidor.ejemplo.com',
+      },
+      {
+        error: 'sudo: command not found / sudo: no se ha encontrado la orden',
+        cause: 'El usuario SSH de Ansible no tiene sudo instalado o no pertenece al grupo sudoers/wheel.',
+        fix: 'apt install sudo && usermod -aG sudo usuario  (Debian/Ubuntu)  |  dnf install sudo && usermod -aG wheel usuario  (RHEL/Fedora)',
+      },
+      {
+        error: 'chdir /tmp/ansible-tmp-xxx/: Permission denied',
+        cause: 'El directorio /tmp no es escribible por el usuario, o está montado con noexec.',
+        fix: 'Verificá permisos: ls -la / | grep tmp  —  Ansible requiere /tmp escribible y ejecutable para copiar módulos Python.',
+      },
+    ],
   },
   {
     levelId: 0,
@@ -1000,7 +1017,24 @@ ansible-lint mi-playbook.yml</code></pre>
           </div>
         `
       }
-    ]
+    ],
+    troubleshooting: [
+      {
+        error: 'yaml.scanner.ScannerError: mapping values are not allowed here',
+        cause: 'Hay un ":" en un valor sin comillas, o indentación incorrecta cerca de ese punto.',
+        fix: 'Envolvé el valor: mensaje: "Error: host no encontrado"  —  Validá con: yamllint playbook.yml',
+      },
+      {
+        error: 'expected <block mapping start>, but found <scalar>',
+        cause: 'Mezcla de tabs y espacios, o nivel de indentación incorrecto en esa línea.',
+        fix: 'Configurá tu editor para usar 2 espacios (no tabs). Verificá tabs con: cat -A archivo.yml  (tabs aparecen como ^I)',
+      },
+      {
+        error: 'ERROR! Syntax Error while loading YAML. found character that cannot start any token',
+        cause: 'Un caracter especial (@, `, |, {) al inicio de un valor sin comillas, o un tab en lugar de espacios.',
+        fix: 'ansible-playbook --syntax-check mi-playbook.yml  —  localiza la línea exacta del error.',
+      },
+    ],
   },
   {
     levelId: 0,

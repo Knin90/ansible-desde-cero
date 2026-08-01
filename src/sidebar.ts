@@ -64,6 +64,24 @@ export function initSidebar(): void {
 }
 
 function buildNavTree(navTree: HTMLElement, sidebar: HTMLElement): void {
+  // Quick-links section
+  const quickLinks = document.createElement('div');
+  quickLinks.className = 'sidebar-quick-links';
+  quickLinks.innerHTML = `
+    <div class="sql-item" data-href="">🏠 Inicio</div>
+    <div class="sql-item" data-href="cheat-sheet">📋 Cheat Sheet</div>
+    <div class="sql-item" data-href="snippets">🧩 Snippets</div>
+  `;
+  quickLinks.querySelectorAll('.sql-item').forEach(el => {
+    (el as HTMLElement).addEventListener('click', () => {
+      window.location.hash = (el as HTMLElement).dataset['href'] ?? '';
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('open');
+      }
+    });
+  });
+  navTree.appendChild(quickLinks);
+
   levelRegistry.forEach(level => {
     const group = document.createElement('div');
     group.className = 'level-group';
@@ -179,6 +197,13 @@ function initBackdrop(sidebar: HTMLElement): void {
 
 function updateActiveItem(): void {
   const hash = window.location.hash.replace('#', '');
+
+  // Update quick-link active state
+  document.querySelectorAll('.sql-item').forEach(el => {
+    const item = el as HTMLElement;
+    item.classList.toggle('active', item.dataset['href'] === hash);
+  });
+
   if (!hash) return;
 
   const [levelPart, modulePart] = hash.split('/');

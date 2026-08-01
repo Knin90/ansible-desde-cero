@@ -1,4 +1,6 @@
 import type { ModuleContent } from '../levels/types';
+import { CHEAT_SHEET } from '../content/cheatSheet';
+import { SNIPPETS } from '../content/snippets';
 import { applyGlossary } from '../glossary';
 import { levelRegistry } from '../levels/registry';
 import { getModuleContent } from './contentRouter';
@@ -56,6 +58,54 @@ export class ModuleRenderer {
   // TASK 03 + TASK 06: Delegated click handler
   private handleContentClick(e: Event): void {
     const target = e.target as HTMLElement;
+
+    // Cheat sheet copy button
+    const csCopyBtn = target.closest('.cs-copy-btn') as HTMLElement | null;
+    if (csCopyBtn) {
+      this.handleCopySimple(csCopyBtn, csCopyBtn.dataset['cmd'] ?? '');
+      return;
+    }
+
+    // Cheat sheet tab filter
+    const csTab = target.closest('.cs-tab') as HTMLElement | null;
+    if (csTab) {
+      this.contentEl.querySelectorAll('.cs-tab').forEach(t => t.classList.remove('active'));
+      csTab.classList.add('active');
+      const filter = csTab.dataset['filter'] ?? 'all';
+      this.contentEl.querySelectorAll('.cs-category').forEach(cat => {
+        const el = cat as HTMLElement;
+        if (filter === 'all' || el.dataset['cat'] === filter) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+      return;
+    }
+
+    // Snippets copy button
+    const spCopyBtn = target.closest('.sp-copy-btn') as HTMLElement | null;
+    if (spCopyBtn) {
+      this.handleCopySimple(spCopyBtn, spCopyBtn.dataset['code'] ?? '');
+      return;
+    }
+
+    // Snippets tab filter
+    const spTab = target.closest('.sp-tab') as HTMLElement | null;
+    if (spTab) {
+      this.contentEl.querySelectorAll('.sp-tab').forEach(t => t.classList.remove('active'));
+      spTab.classList.add('active');
+      const filter = spTab.dataset['filter'] ?? 'all';
+      this.contentEl.querySelectorAll('.sp-category').forEach(cat => {
+        const el = cat as HTMLElement;
+        if (filter === 'all' || el.dataset['cat'] === filter) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+      return;
+    }
 
     // Copy button
     const copyBtn = target.closest('.copy-btn') as HTMLElement | null;
@@ -144,8 +194,118 @@ export class ModuleRenderer {
       });
   }
 
+  private handleCopySimple(btn: HTMLElement, text: string): void {
+    const originalHtml = btn.innerHTML;
+    const copyAsync = async () => {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+    };
+    copyAsync()
+      .then(() => {
+        btn.innerHTML = '✓';
+        setTimeout(() => { btn.innerHTML = originalHtml; }, 1500);
+      })
+      .catch(() => {
+        btn.innerHTML = '✗';
+        setTimeout(() => { btn.innerHTML = originalHtml; }, 1500);
+      });
+  }
+
+  private renderCheatSheet(): void {
+    const tabsHtml = [
+      `<button class="cs-tab active" data-filter="all">Todos</button>`,
+      ...CHEAT_SHEET.map(cat =>
+        `<button class="cs-tab" data-filter="${escapeHtml(cat.id)}">${escapeHtml(cat.id)}</button>`
+      ),
+    ].join('');
+
+    const categoriesHtml = CHEAT_SHEET.map(cat => `
+      <div class="cs-category" data-cat="${escapeHtml(cat.id)}">
+        <h3 class="cs-category-title">${escapeHtml(cat.title)}</h3>
+        <div class="cs-commands">
+          ${cat.commands.map(c => `
+            <div class="cs-row">
+              <code class="cs-cmd">${escapeHtml(c.cmd)}</code>
+              <span class="cs-desc">${escapeHtml(c.desc)}</span>
+              <button class="cs-copy-btn" data-cmd="${escapeHtml(c.cmd)}">&#x29C9;</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    this.contentEl.innerHTML = `
+      <div class="cheat-sheet-page">
+        <div class="cs-header">
+          <h2 class="cs-title">📋 Cheat Sheet — Ansible</h2>
+          <p class="cs-subtitle">Referencia rápida de comandos. Hacé clic en cualquier comando para copiarlo.</p>
+        </div>
+        <div class="cs-tabs">${tabsHtml}</div>
+        <div class="cs-body">${categoriesHtml}</div>
+      </div>
+    `;
+  }
+
+  private renderSnippets(): void {
+    const tabsHtml = [
+      `<button class="sp-tab active" data-filter="all">Todos</button>`,
+      ...SNIPPETS.map(cat =>
+        `<button class="sp-tab" data-filter="${escapeHtml(cat.id)}">${escapeHtml(cat.icon)} ${escapeHtml(cat.title)}</button>`
+      ),
+    ].join('');
+
+    const categoriesHtml = SNIPPETS.map(cat => `
+      <div class="sp-category" data-cat="${escapeHtml(cat.id)}">
+        <h3 class="sp-category-title">${escapeHtml(cat.icon)} ${escapeHtml(cat.title)}</h3>
+        ${cat.snippets.map(s => `
+          <div class="sp-card">
+            <div class="sp-card-header">
+              <div>
+                <div class="sp-card-title">${escapeHtml(s.title)}</div>
+                <div class="sp-card-desc">${escapeHtml(s.description)}</div>
+              </div>
+              <button class="sp-copy-btn" data-code="${escapeHtml(s.code)}">&#x29C9; Copiar</button>
+            </div>
+            <div class="code-block-wrapper">
+              <div class="code-block-titlebar"><span class="code-block-lang">${escapeHtml(s.lang)}</span></div>
+              <pre class="language-${escapeHtml(s.lang)}"><code class="language-${escapeHtml(s.lang)}">${escapeHtml(s.code)}</code></pre>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+
+    this.contentEl.innerHTML = `
+      <div class="snippets-page">
+        <div class="sp-header">
+          <h2 class="sp-title">🧩 Snippets — YAML listo para usar</h2>
+          <p class="sp-subtitle">Fragmentos de código organizados por categoría. Copiá y adaptá a tu caso.</p>
+        </div>
+        <div class="sp-tabs">${tabsHtml}</div>
+        <div class="sp-body">${categoriesHtml}</div>
+      </div>
+    `;
+
+    this.injectCopyButtons();
+    highlightAll();
+  }
+
   async render(level: number, module: number): Promise<void> {
     await ensurePrism();
+
+    if (level === -2) { this.renderCheatSheet(); return; }
+    if (level === -3) { this.renderSnippets(); return; }
 
     if (level < 0) {
       this.renderWelcome();
@@ -246,6 +406,19 @@ export class ModuleRenderer {
       ? `<span class="module-duration-tag">⏱ ${escapeHtml(content.duration)}</span>`
       : '';
 
+    const troubleshootingHtml = content.troubleshooting && content.troubleshooting.length > 0
+      ? `<div class="troubleshooting-box">
+      <div class="ts-header">🔧 Errores frecuentes</div>
+      ${content.troubleshooting.map(item => `
+        <div class="ts-item">
+          <div class="ts-error"><span class="ts-error-label">ERROR</span><code>${escapeHtml(item.error)}</code></div>
+          <div class="ts-cause"><span class="ts-label">CAUSA</span> ${escapeHtml(item.cause)}</div>
+          <div class="ts-fix"><span class="ts-label">SOLUCIÓN</span><code>${escapeHtml(item.fix)}</code></div>
+        </div>
+      `).join('')}
+    </div>`
+      : '';
+
     const quizHtml = content.quiz && content.quiz.length > 0
       ? `<div class="module-quiz">
       <div class="quiz-header">📝 Verificá tu comprensión</div>
@@ -337,6 +510,7 @@ export class ModuleRenderer {
       </div>
       <div id="diagram-slot"></div>
       <div class="module-steps">${stepsHtml}</div>
+      ${troubleshootingHtml}
       ${quizHtml}
       ${realWorldHtml}
       <nav class="module-nav">
